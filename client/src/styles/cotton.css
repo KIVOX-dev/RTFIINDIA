@@ -1,0 +1,32 @@
+/* Cotton-industry live backdrop */
+.cf { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: linear-gradient(135deg, #eaf4ff 0%, #f7fbff 45%, #fdf8ef 100%); }
+.cf-glow { position: absolute; display: block; border-radius: 50%; filter: blur(70px); }
+.cf-glow.a { width: 46%; height: 70%; right: -6%; top: -10%; background: radial-gradient(circle, rgba(110,170,255,0.5), transparent 70%); }
+.cf-glow.b { width: 40%; height: 60%; left: -8%; bottom: -20%; background: radial-gradient(circle, rgba(255,226,180,0.55), transparent 70%); }
+
+/* yarn threads: a long periodic wave slides sideways, seamless because it is exactly two periods wide */
+.cf-thread { position: absolute; left: 0; width: 200%; height: 120px; overflow: visible; }
+.cf-thread-in { animation: cf-slide var(--dur, 50s) linear infinite; will-change: transform; }
+@keyframes cf-slide { to { transform: translateX(-1200px); } }
+
+/* cotton bolls sway */
+.cf-boll { position: absolute; transform: rotate(var(--r, 0deg)); animation: cf-sway 10s ease-in-out infinite; will-change: transform; filter: drop-shadow(0 14px 18px rgba(40, 80, 140, 0.18)); }
+.cf-boll svg { display: block; width: 100%; height: auto; }
+@keyframes cf-sway {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(var(--r, 0deg)); }
+  50% { transform: translate3d(0, -14px, 0) rotate(calc(var(--r, 0deg) + 5deg)); }
+}
+
+/* loose fibres drift upward and fade */
+.cf-fibre { position: absolute; bottom: -24px; display: block; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #fff, rgba(255,255,255,0.35) 70%, transparent); box-shadow: 0 0 10px rgba(255,255,255,0.9); opacity: 0; animation: cf-rise 14s linear infinite; will-change: transform, opacity; }
+@keyframes cf-rise {
+  0% { transform: translate3d(0, 0, 0) scale(0.8); opacity: 0; }
+  12% { opacity: 0.9; }
+  100% { transform: translate3d(40px, -620px, 0) scale(1.25); opacity: 0; }
+}
+
+html.lite .cf-thread-in, html.lite .cf-fibre { animation: none; }
+html.lite .cf-boll { animation: none; filter: none; }
+html.lite .cf-fibre { display: none; }
+@media (prefers-reduced-motion: reduce) { .cf-thread-in, .cf-boll, .cf-fibre { animation: none !important; } .cf-fibre { display: none; } }
+@media (max-width: 900px) { .cf-boll:nth-child(n + 11) { display: none; } .cf-fibre:nth-child(n + 12) { display: none; } }

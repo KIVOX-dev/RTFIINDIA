@@ -1,0 +1,52 @@
+/* About page spacing */
+.about-grid { align-items: start; gap: 48px; margin-bottom: 56px; }
+.about-grid .prose { align-content: start; gap: 16px; max-width: 62ch; font-size: 1.0625rem; line-height: 1.7; }
+.about-grid .prose p { margin: 0; }
+.about-logo { display: block; width: auto; height: 150px; max-width: 100%; margin: 0 auto 24px; object-fit: contain; }
+.about-grid .pad { padding: 24px 28px; }
+.about-grid .ticks { gap: 14px; }
+.page-head { padding-top: 12px; }
+.page-head .h1 { margin-top: 4px; }
+.about-grid ~ .counters, .counters { margin-top: 0; }
+.about-photos { margin-top: 56px; }
+
+/* Contact page: compact so the details, form and map fit on one screen */
+@media (min-width: 861px) {
+  .contact-page { padding-top: 20px; padding-bottom: 28px; }
+  .contact-page .page-head { margin-bottom: 14px; display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+  .contact-page .page-head .eyebrow { display: none; }
+  .contact-page .h1 { font-size: 1.75rem; }
+  .contact-page .lead-sm { margin: 0; font-size: 1rem; }
+  .contact-page .contact-grid { gap: 16px; }
+  .contact-page .stack { gap: 12px; }
+  .contact-page .ci.pad, .contact-page .pad { padding: 14px 18px; }
+  .contact-page .ci p { line-height: 1.45; }
+  .contact-page .btn-lg { --h: 44px; }
+  .contact-page .hours { margin: 8px 0 4px; gap: 4px; }
+  .contact-page .form-grid { gap: 10px; }
+  .contact-page .form-grid .field input { min-height: 46px; padding-top: 18px; }
+  .contact-page .form-grid .field textarea { min-height: 70px; padding-top: 20px; }
+  .contact-page .map iframe { height: 250px; }
+  .contact-page .map-foot { padding: 8px 14px; }
+  .contact-page .socials-light:empty { display: none; }
+}
+
+/* Price tiles on the home page: fixed columns so names, units, rates and change chips line up row to row */
+.pb-list { padding: 6px 24px 8px; }
+.pb-row { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(48px, 0.7fr) 92px 104px; align-items: center; column-gap: 12px; padding: 12px 0; }
+.pb-row .spacer { display: none; }
+.pb-row b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pb-rate { text-align: right; min-width: 0; font-size: 1.0625rem; }
+.pb-row .pill { width: 100%; justify-content: center; }
+.ptile > .btn { align-self: flex-start; margin: 6px 24px 24px !important; }
+@media (max-width: 520px) {
+  .pb-row { grid-template-columns: minmax(0, 1fr) 84px 96px; }
+  .pb-row > .small { display: none; }
+  .pb-list { padding-inline: 16px; }
+  .ptile > .btn { margin-inline: 16px !important; }
+}
+
+/* Rate cards: keep content inside the card and align from the top */
+.rate-card { grid-template-columns: minmax(0, 1fr); align-content: start; min-width: 0; box-sizing: border-box; }
+.rate-card .row { min-width: 0; flex-wrap: wrap; row-gap: 6px; }
+.rate-card .rate-big { white-space: nowrap; }

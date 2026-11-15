@@ -1,0 +1,120 @@
+*, *::before, *::after { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0; font-family: var(--font); font-size: 16px; line-height: 1.6; color: var(--text);
+  background: var(--bg); -webkit-font-smoothing: antialiased; overflow-x: hidden;
+}
+h1, h2, h3, h4 { margin: 0; letter-spacing: var(--tracking); line-height: 1.15; font-weight: 600; }
+p { margin: 0; }
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; cursor: pointer; }
+ul { margin: 0; padding: 0; list-style: none; }
+:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; border-radius: 6px; }
+.skip { position: absolute; left: 12px; top: -60px; z-index: 999; background: var(--navy); color: #fff; padding: 10px 16px; border-radius: 8px; }
+.skip:focus { top: 12px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ambient background */
+.bg-blobs { position: fixed; inset: 0; z-index: -1; overflow: hidden; pointer-events: none; background: var(--bg); }
+.bg-blobs i { position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.22; }
+.bg-blobs i:nth-child(1) { width: 52vw; height: 52vw; left: -14vw; top: -16vw; background: radial-gradient(circle, rgba(51,149,255,0.55), transparent 70%); animation: drift 22s ease-in-out infinite alternate; }
+.bg-blobs i:nth-child(2) { width: 46vw; height: 46vw; right: -12vw; top: 18vh; background: radial-gradient(circle, rgba(56,212,255,0.45), transparent 70%); animation: drift 26s ease-in-out infinite alternate-reverse; }
+@keyframes drift { to { transform: translate3d(5vw, 6vh, 0) scale(1.08); } }
+
+.container { width: min(100% - 32px, var(--container)); margin-inline: auto; }
+.section { padding-block: var(--section-y); }
+
+/* Glass slats backdrop (see ui/GlassPanes.jsx) */
+.gp-wrap { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: #fff; }
+.gp-par { position: absolute; inset: 0 -6%; transform: translate3d(var(--mx, 0px), 0, 0); transition: transform 0.5s var(--ease); }
+.gp-skew { position: absolute; inset: -12% -22%; display: flex; transform: skewX(-17deg); }
+.gp-pane { position: relative; display: block; flex: var(--w) 1 0; overflow: hidden; box-shadow: inset 1px 0 0 rgba(255,255,255,0.7); }
+.gp-pane::before { /* chromatic fringe on the left edge of every slat */
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 22%;
+  background: linear-gradient(90deg, rgba(244,255,168,0.75), rgba(170,255,238,0.5) 55%, transparent);
+}
+.gp-pane::after { /* light glint that sweeps through each slat, staggered so it ripples across the glass */
+  content: ''; position: absolute; inset: 0; opacity: 0; will-change: transform, opacity;
+  background: linear-gradient(100deg, transparent 25%, rgba(255,255,255,0.95) 50%, transparent 75%);
+  animation: gp-glint 7s ease-in-out infinite; animation-delay: var(--d, 0s);
+}
+@keyframes gp-glint { 0% { transform: translateX(-70%); opacity: 0; } 12% { opacity: 0.9; } 28% { transform: translateX(70%); opacity: 0; } 100% { transform: translateX(70%); opacity: 0; } }
+.gp-sheen { /* one broad soft highlight drifting over everything */
+  position: absolute; top: -10%; bottom: -10%; left: -30%; width: 26%; transform: skewX(-17deg);
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.55), transparent); animation: gp-sheen 11s ease-in-out infinite; will-change: transform;
+}
+@keyframes gp-sheen { 0% { transform: translateX(0) skewX(-17deg); } 55%, 100% { transform: translateX(520%) skewX(-17deg); } }
+.gp-wash { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.68) 22%, rgba(255,255,255,0) 52%); }
+html.lite .gp-pane::after, html.lite .gp-sheen { animation: none; }
+@media (prefers-reduced-motion: reduce) { .gp-pane::after, .gp-sheen { animation: none; } .gp-par { transition: none; } }
+
+/* Iridescent diagonal backdrop (soft variant): white corner, aqua / sky / periwinkle streaks, pale lime glints, fine grain */
+.iri {
+  position: relative; isolation: isolate; overflow: hidden;
+  background:
+    radial-gradient(ellipse 55% 45% at 0% 0%, #fff 0%, rgba(255,255,255,0) 72%),
+    radial-gradient(ellipse 34% 46% at 0% 62%, rgba(238,255,176,0.62), transparent 72%),
+    radial-gradient(ellipse 30% 40% at 100% 100%, rgba(238,255,176,0.5), transparent 72%),
+    repeating-linear-gradient(70deg, rgba(255,255,255,0) 0 70px, rgba(255,255,255,0.5) 98px, rgba(255,255,255,0) 150px),
+    repeating-linear-gradient(70deg, rgba(80,165,255,0) 0 130px, rgba(80,165,255,0.24) 195px, rgba(80,165,255,0) 270px),
+    linear-gradient(100deg, #f3fff6 0%, #bff3ff 24%, #aee3ff 48%, #c3e0ff 72%, #a6cdff 100%);
+}
+.iri::before { /* slow drifting light streaks (transform only) */
+  content: ''; position: absolute; inset: -10% -20%; z-index: -1; pointer-events: none;
+  background: repeating-linear-gradient(70deg, rgba(255,255,255,0) 0 210px, rgba(255,255,255,0.38) 250px, rgba(255,255,255,0) 330px);
+  animation: iri-drift 16s ease-in-out infinite alternate;
+}
+.iri::after { /* grain */
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: 0.1; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.6'/%3E%3C/svg%3E");
+}
+@keyframes iri-drift { to { transform: translateX(6%); } }
+html.lite .iri::before { animation: none; }
+@media (prefers-reduced-motion: reduce) { .iri::before { animation: none; } }
+.section-head { max-width: 680px; margin-bottom: var(--s-12); }
+.section-head.center { margin-inline: auto; text-align: center; }
+.section-head h2 { font-size: var(--h-1); }
+.section-head p { margin-top: var(--s-4); color: var(--text-muted); font-size: 1.125rem; }
+.eyebrow { display: inline-block; font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue-ink); margin-bottom: var(--s-3); }
+.grad-text { background: linear-gradient(100deg, #2f8bff, #17b7e8 60%, #0f5fd0); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.muted { color: var(--text-muted); }
+.row { display: flex; align-items: center; gap: var(--s-3); }
+.wrap { flex-wrap: wrap; }
+.spacer { flex: 1; }
+.page-pad { padding-top: 40px; }
+
+/* glass */
+.glass {
+  background: var(--glass-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); border-radius: var(--r-4);
+}
+.glass-dark {
+  background: var(--glass-dark-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-dark-border); color: #fff; border-radius: var(--r-4);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass { background: #fff; border-color: var(--line); }
+  .glass-dark { background: var(--navy); }
+}
+/* low-end devices: solid surfaces, no blob animation (class set in main.jsx) */
+html.lite .glass { background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none; border-color: var(--line); }
+html.lite .glass-dark { background: var(--navy); backdrop-filter: none; -webkit-backdrop-filter: none; }
+html.lite .bg-blobs i { animation: none; filter: none; opacity: 0.35; }
+
+.lift { transition: transform var(--t-hover) var(--ease), box-shadow var(--t-hover) var(--ease), border-color var(--t-hover); }
+.lift:hover { transform: translateY(-4px); box-shadow: 0 16px 44px rgba(7,38,84,0.13), 0 0 0 1px rgba(51,149,255,0.35); }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
+  .bg-blobs i { animation: none; }
+  .lift:hover { transform: none; }
+}
+
+@media print {
+  .no-print, header.site-header, footer.site-footer, .bg-blobs, .toasts, .top-loader { display: none !important; }
+  body { background: #fff; }
+  .glass { box-shadow: none; background: #fff; backdrop-filter: none; border: 1px solid #ccc; }
+  .page-pad { padding-top: 0; }
+}

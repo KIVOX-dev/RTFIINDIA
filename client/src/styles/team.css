@@ -1,0 +1,19 @@
+/* Leadership cards: bordered white team cards with a large portrait on top */
+.people { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+.people .person {
+  display: block; justify-items: stretch; text-align: left; gap: 0; padding: 16px; border-radius: 0; background: #fff; backdrop-filter: none; -webkit-backdrop-filter: none;
+  border: 1px solid #e4e9f2; box-shadow: none; transition: border-color 0.2s;
+}
+.person:hover { transform: none; box-shadow: none; border-color: #c4d0ea; }
+.people .person h3, .people .person p { text-align: left; }
+.pphoto { width: 100%; aspect-ratio: 4 / 4.5; overflow: hidden; background: linear-gradient(160deg, #dfe6f1, #c3cedf); display: grid; place-items: center; }
+.pphoto img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; }
+.pinit { font-size: clamp(2.5rem, 6vw, 4rem); font-weight: 600; letter-spacing: -0.03em; color: rgba(12, 36, 81, 0.35); }
+.person h3 { margin: 22px 0 8px; font-size: 1.375rem; font-weight: 500; letter-spacing: -0.01em; color: #111; }
+.prole { color: #111; font-size: 1.0625rem; line-height: 1.4; }
+.pfirm { margin-top: 8px; color: #5f6672; font-size: 0.9375rem; line-height: 1.5; }
+.pin-link { display: inline-flex; margin-top: 14px; color: #0a66c2; }
+.pin-link:hover { color: #004182; }
+@media (max-width: 1000px) { .people { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 720px) { .people { grid-template-columns: repeat(2, 1fr); gap: 12px; } .person { padding: 10px; } .person h3 { font-size: 1.0625rem; margin-top: 14px; } .prole { font-size: 0.9375rem; } }
+@media (max-width: 400px) { .people { grid-template-columns: 1fr; } }

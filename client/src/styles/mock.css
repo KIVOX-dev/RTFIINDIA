@@ -1,0 +1,18 @@
+/* Hero rates card (redesigned): header, aligned columns, chart block, share action, all inside the card */
+.mock { padding: 0; overflow: hidden; border-radius: 16px; background: #fff; box-shadow: 0 30px 70px rgba(12,36,81,0.18), 0 0 0 1px rgba(12,36,81,0.06); }
+.mk-top { display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: linear-gradient(180deg, #f5f8ff, #fff); border-bottom: 1px solid var(--line); }
+.mk-ic { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; color: #fff; background: linear-gradient(135deg, #4a74ff, var(--blue)); box-shadow: 0 6px 14px rgba(48,94,255,0.3); flex: none; }
+.mk-title { display: grid; line-height: 1.25; margin-right: auto; }
+.mk-title b { font-size: 1.0625rem; font-weight: 600; }
+.mk-title span { font-size: 0.8125rem; color: var(--text-muted); }
+.mk-cols, .mk-row { display: grid; grid-template-columns: 1fr 1fr 118px; align-items: center; column-gap: 12px; padding-inline: 20px; }
+.mk-cols { padding-block: 10px 6px; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.mk-cols span:nth-child(2) { text-align: right; } .mk-cols span:nth-child(3) { text-align: center; }
+.mk-row { padding-block: 11px; border-top: 1px solid var(--line); }
+.mk-row b { font-size: 1.0625rem; font-weight: 600; }
+.mk-rate { text-align: right; font-size: 1.25rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.mk-row .pill { justify-content: center; width: 100%; }
+.mk-chart { margin: 6px 20px 20px; padding: 14px 14px 8px; border-radius: 12px; background: linear-gradient(180deg, #f3f7ff, #fff); border: 1px solid var(--line); }
+.mk-chart-h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8125rem; margin-bottom: 4px; }
+.mk-chart-h span { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.mk-share { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 14px 20px 20px; height: 46px; border-radius: 10px; font-weight: 600; font-size: 0.9375rem; color: #fff; background: linear-gradient(180deg, #1fb85f, #12994c); box-shadow: 0 6px 16px rgba(18,153,76,0.3); }

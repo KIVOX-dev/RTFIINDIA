@@ -1,0 +1,30 @@
+/* Stacked sections: each has a solid backdrop and a soft top edge, so the next one visibly slides over the previous */
+/* The pinned layer IS the box (card width, border, shadow) so nothing spreads across the sides of the screen */
+.stacked, .vision-wrap.stacked, .scard-wrap.stacked { position: relative; width: min(100% - 32px, 1232px); margin: 0 auto 20px; padding: 0; background: #fff; border: 1px solid var(--line); border-radius: 16px; box-shadow: 0 -10px 30px -14px rgba(12,36,81,0.2); }
+.stacked .container { width: 100%; margin: 0; }
+.stacked .scard { border: 0; box-shadow: none; border-radius: 16px; background: transparent; padding: 36px; }
+.stacked .vision2, .stacked .cta { margin: 16px; }
+@media (max-width: 720px) { .stacked .scard { padding: 20px 16px; } }
+
+/* Why RTF: gradient panel with a live mini product screen, numbered badge + rule, then title and text */
+.fmt h3 { margin: 14px 0 6px; font-size: 1.1875rem; font-weight: 600; }
+.fmt p { font-size: 0.9375rem; }
+.fm { position: relative; height: 250px; border-radius: 10px; overflow: hidden; display: grid; place-items: center; }
+.fm::after { content: ''; position: absolute; inset: 0; background: radial-gradient(60% 60% at 100% 0%, rgba(255,255,255,0.35), transparent); pointer-events: none; }
+.fm-card { position: relative; z-index: 1; width: 84%; padding: 16px 18px; border-radius: 14px; background: #fff; box-shadow: 0 18px 44px rgba(12,36,81,0.18); font-size: 0.8125rem; transition: transform 0.5s var(--ease); }
+.fmt:hover .fm-card { transform: translateY(-5px); }
+.fm-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-bottom: 10px; font-size: 0.875rem; }
+.fm-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 9px 0; border-top: 1px solid var(--line); color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.fm-row b { color: var(--text); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.fm-row b.ok { color: var(--up-ink); }
+.fm-clip { display: block; max-width: 132px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-weight: 500; }
+.fm-cat { font-size: 0.6875rem; padding: 2px 8px; border-radius: 999px; background: var(--blue-wash); color: var(--blue-ink); font-weight: 600; white-space: nowrap; }
+.fm-foot { margin-top: 6px; padding: 10px 12px; border-radius: 8px; background: var(--bg-soft); }
+.fm-chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; border: 1px solid #c8d6f5; background: #fff; font-weight: 600; font-size: 0.75rem; color: var(--blue-ink); }
+.fm-chip.ok { border-color: #8fd9ae; color: var(--up-ink); }
+.fm-avatars { display: flex; padding: 4px 0 10px; }
+.fm-av { width: 38px; height: 38px; margin-right: -4px; flex: none; border-radius: 50%; display: grid; place-items: center; font-size: 0.6875rem; font-weight: 700; color: #fff; background: linear-gradient(135deg, #3395ff, #0f5fd0); border: 2px solid #fff; }
+.fm-av.more { background: #e6edf8; color: var(--navy); }
+.fnum { display: flex; align-items: center; gap: 12px; margin-top: 18px; }
+.fnum i { flex: 1; height: 1px; background: var(--line); }
+.fnum-b { width: 44px; height: 44px; border-radius: 8px; display: grid; place-items: center; background: var(--blue); color: #fff; font-weight: 700; font-size: 1.25rem; box-shadow: 0 6px 14px rgba(48,94,255,0.3); }

@@ -1,0 +1,82 @@
+/* RTF design tokens. Re-theme the whole site by editing the variables below
+   (set --blue / --navy to the real logo colours once the client provides them). */
+:root {
+  /* brand */
+  --navy: #0c2451;
+  --navy-deep: #061a3d;
+  --blue: #305eff; /* primary action + headline blue (white text on it passes AA) */
+  --blue-hover: #1f49e0;
+  --blue-light: #3395ff; /* accent blue from the brief */
+  --blue-wash: #eef3ff;
+  --blue-ink: #2347d8; /* blue for text on light backgrounds */
+  --btn-from: #3a66ff;
+  --btn-to: #2a56f2;
+  --cyan: #38d4ff;
+  /* status */
+  --up: #12b76a;
+  --up-ink: #067647;
+  --down: #f04438;
+  --down-ink: #b42318;
+  --amber: #f5a524;
+  --green-hl: #1aa35c; /* highlighted word colour in section headings */
+  /* surfaces */
+  --bg: #ffffff;
+  --bg-soft: #f5f8ff;
+  --text: #0c1b3a;
+  --text-muted: #4a5875;
+  --line: #e3eaf6;
+  --white: #fff;
+  /* tinted illustration backgrounds (product tiles) */
+  --tint-blue: #dfe9ff;
+  --tint-teal: #d7f0ee;
+  --tint-mint: #dff5e6;
+  --tint-lilac: #e9e4fb;
+  --tint-sand: #fbeed6;
+  --tint-rose: #fde4e4;
+  /* glass (floating surfaces only: header on scroll, hero mockup, quick bar, toasts, modals) */
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-border: rgba(12, 36, 81, 0.08);
+  --glass-blur: blur(18px) saturate(160%);
+  --glass-shadow: 0 8px 32px rgba(12, 36, 81, 0.08);
+  --glass-dark-bg: rgba(12, 36, 81, 0.55);
+  --glass-dark-border: rgba(255, 255, 255, 0.12);
+  /* radius: small and crisp */
+  --r-1: 4px;
+  --r-2: 6px;
+  --r-3: 10px;
+  --r-4: 12px;
+  /* spacing (4px base) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+  --s-16: 64px;
+  --section-y: 96px;
+  /* type */
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --h-hero: clamp(2.4rem, 5vw, 4.2rem);
+  --h-1: clamp(1.75rem, 3vw, 2.5rem);
+  --h-2: clamp(1.25rem, 2vw, 1.625rem);
+  --tracking: -0.025em;
+  /* motion */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --t-hover: 240ms;
+  --t-reveal: 700ms;
+  /* layout */
+  --container: 1200px;
+  --announce-h: 48px;
+  --header-h: 88px;
+  --header-h-s: 64px;
+  --focus: 0 0 0 2px #fff, 0 0 0 4px var(--blue);
+}
+@media (max-width: 720px) {
+  :root {
+    --section-y: 56px;
+    --announce-h: 0px;
+    --header-h: 64px;
+  }
+}

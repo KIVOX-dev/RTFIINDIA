@@ -1,0 +1,32 @@
+/* Calm page: no hover-lifts, floating, zooming or sliding. The stacking section boxes (home) are the only scroll motion.
+   Colour / border / shadow changes on hover are kept so controls still feel responsive. */
+.lift:hover, .person:hover, .chip:hover, .qchip:hover, .btn:hover, .btn:active, .icon-btn:hover, .socials a:hover, .announce-btn:hover,
+.fmt:hover .fm-card, .tile-card:hover .illus-card:not(.back), .stat:hover, a.stat:hover, .cat-chip:hover { transform: none !important; }
+.gp:hover img, .news-card:hover .news-img img, .post-card:hover .post-img img { transform: none !important; }
+.btn:hover .arrow, .more:hover .arrow, .btn-glass:hover .arrow { transform: none !important; }
+.float, .p2-chip, .mock-float { animation: none !important; }
+.illus-card { transition: none; }
+.fm-card { transition: none; }
+
+/* anchors for the section tab bar (zero-height, so sticky stacking is unaffected) */
+.anchor { display: block; height: 0; scroll-margin-top: 76px; }
+
+/* On the home page the site header scrolls away (like Razorpay) so only the tab bar stays pinned */
+.site-header.is-static { position: relative; }
+
+/* Sticky section tab bar, like Razorpay's product tabs */
+.secnav { position: sticky; top: 0; z-index: 45; background: rgba(255,255,255,0.96); border-bottom: 1px solid var(--line); box-shadow: 0 6px 20px -12px rgba(12,36,81,0.2); }
+.secnav-in { display: flex; align-items: center; gap: 16px; min-height: 56px; }
+.secnav-tabs { display: flex; gap: 6px; overflow-x: auto; flex: 1; scrollbar-width: none; }
+.secnav-tabs::-webkit-scrollbar { display: none; }
+.secnav-tabs button { position: relative; flex: none; height: 56px; padding: 0 16px; border: 0; background: none; font-size: 1rem; font-weight: 500; color: var(--text-muted); transition: color 0.2s; }
+.secnav-tabs button:hover { color: var(--blue-ink); }
+.secnav-tabs button.on { color: var(--text); font-weight: 600; }
+.secnav-tabs button.on::after { content: ''; position: absolute; left: 12px; right: 12px; bottom: 0; height: 3px; border-radius: 3px 3px 0 0; background: #2fbf84; }
+.secnav-cta { flex: none; }
+@media (max-width: 860px) { .secnav-cta { display: none; } }
+
+/* No visible scrollbars anywhere (page, news strip, tables, modals). Scrolling still works by wheel, touch, trackpad and keyboard. */
+html, body, * { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar, *::-webkit-scrollbar { display: none; width: 0; height: 0; }
+.strip { padding-bottom: 0; }
