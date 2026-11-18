@@ -1,0 +1,9 @@
+node_modules
+dist
+coverage
+server/.data
+server/uploads
+seed-assets
+shots
+*.md
+package-lock.json

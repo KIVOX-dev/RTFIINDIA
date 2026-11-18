@@ -9,7 +9,7 @@
     "seed": "node --env-file-if-exists=.env src/seed.js",
     "test": "vitest run",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write src test"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -24,8 +24,8 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@eslint/js": "^10.0.1",
-    "eslint": "^10.15.0",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
     "globals": "^17.14.0",
     "mongodb-memory-server": "^10.1.0",
     "prettier": "^3.10.1",

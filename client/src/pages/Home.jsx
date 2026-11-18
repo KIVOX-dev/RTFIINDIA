@@ -6,7 +6,7 @@ import { NewsCard } from '../components/Cards.jsx';
 import { useFetch } from '../lib/api.js';
 import { useSettings, useSeo, usePriceMeta } from '../lib/hooks.jsx';
 import { useUser } from '../lib/userAuth.jsx';
-import { num, fmtDate, fmtDateTime, initials, trend, delta } from '../lib/format.js';
+import { fmtDate, fmtDateTime, initials } from '../lib/format.js';
 
 const TINTS = ['blue', 'teal', 'mint', 'lilac', 'sand', 'rose'];
 

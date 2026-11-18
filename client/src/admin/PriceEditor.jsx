@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { Button, GlassCard, Icon, Modal, Pill, Skeleton, Switch, Tabs, useToast } from '../ui/index.js';
 import { PriceTable } from '../components/Prices.jsx';
 import { adminApi, clearCache } from '../lib/api.js';
-import { fmtDate, num, todayIST, delta } from '../lib/format.js';
+import { fmtDate, num, todayIST } from '../lib/format.js';
 
 const parseNum = (v) => { const n = Number(String(v).replace(/[₹,\s]/g, '')); return String(v).trim() === '' || !Number.isFinite(n) ? null : n; };
 

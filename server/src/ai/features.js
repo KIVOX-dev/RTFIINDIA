@@ -4,7 +4,7 @@ import { PriceList } from '../models/index.js';
 import { todayIST } from '../util.js';
 
 export const MAX_INPUT = 2000;
-const clip = (s, n = MAX_INPUT) => String(s ?? '').replace(/\u0000/g, '').trim().slice(0, n);
+const clip = (s, n = MAX_INPUT) => String(s ?? '').split('\u0000').join('').trim().slice(0, n);
 const fmt = (n) => (n == null ? '-' : String(n));
 
 const CHAT_SYSTEM = `You are "Ask RTF", an assistant for members of the Recycle Textile Federation (Open End spinning mills, Coimbatore).

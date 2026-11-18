@@ -16,7 +16,7 @@ const TITLES = { yarn: 'Yarn Price List', cai: 'CAI Spot Rate' };
 const csvCell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
 function downloadCsv(list, type) {
   const rows = [['Item', 'Unit', 'Rate', 'Previous', 'Change', 'Note'], ...list.rows.map((r) => [r.item, r.unit, r.rate, r.prev, delta(r), r.note])];
-  const blob = new Blob([`﻿${rows.map((r) => r.map(csvCell).join(',')).join('\n')}`], { type: 'text/csv;charset=utf-8' });
+  const blob = new Blob([String.fromCharCode(0xfeff), `${rows.map((r) => r.map(csvCell).join(',')).join('\n')}`], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `rtf-${type}-${list.date}.csv`;
