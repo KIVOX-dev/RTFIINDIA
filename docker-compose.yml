@@ -1,0 +1,36 @@
+# Production-style stack: the app (API + built website) and MongoDB.
+#   cp .env.example .env   # then fill in the secrets
+#   docker compose up -d --build
+services:
+  app:
+    build: .
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      PORT: 4100
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/rtf}
+    ports:
+      - "4100:4100"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    volumes:
+      - uploads:/app/server/uploads
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:7
+    # No "ports": the database is reachable only from other containers on this compose network.
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  uploads:

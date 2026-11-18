@@ -1,0 +1,57 @@
+# Hot-reload development stack:  docker compose -f docker-compose.dev.yml up
+# Website (Vite) on http://localhost:5173, API on http://localhost:4100, MongoDB internal only.
+services:
+  mongo:
+    image: mongo:7
+    volumes:
+      - mongo_dev:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  server:
+    image: node:20-alpine
+    working_dir: /app/server
+    command: sh -c "npm install && npm run dev"
+    environment:
+      NODE_ENV: development
+      PORT: 4100
+      MONGO_URI: mongodb://mongo:27017/rtf
+      JWT_SECRET: ${JWT_SECRET:-dev-admin-secret-change-me}
+      USER_JWT_SECRET: ${USER_JWT_SECRET:-dev-member-secret-change-me}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-change-me}
+      CLIENT_ORIGIN: http://localhost:5173
+      SITE_URL: http://localhost:5173
+      GROQ_API_KEYS: ${GROQ_API_KEYS:-}
+      GROQ_MODELS: ${GROQ_MODELS:-llama-3.3-70b-versatile,llama-3.1-8b-instant}
+    ports:
+      - "4100:4100"
+    volumes:
+      - ./server:/app/server
+      - ./seed-assets:/app/seed-assets:ro
+      - server_modules:/app/server/node_modules
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  client:
+    image: node:20-alpine
+    working_dir: /app/client
+    command: sh -c "npm install && npm run dev -- --host 0.0.0.0"
+    environment:
+      VITE_API_TARGET: http://server:4100
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app/client
+      - client_modules:/app/client/node_modules
+    depends_on:
+      - server
+
+volumes:
+  mongo_dev:
+  server_modules:
+  client_modules:
