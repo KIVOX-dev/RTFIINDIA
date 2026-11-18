@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { api } from './api.js';
+import { api, useFetch } from './api.js';
 
 const SettingsCtx = createContext({ s: {}, ready: false, reload: () => {} });
 export function SettingsProvider({ children }) {
@@ -48,4 +48,10 @@ export function useDebounced(v, ms = 300) {
 
 export function catColor(settings, name) {
   return settings.categories?.find((c) => c.name === name)?.color || '#3395FF';
+}
+
+/** Public, rate-free facts about the price lists (last published time, item names). Rates are members-only. */
+export function usePriceMeta() {
+  const { data, loading } = useFetch('/price-meta', { silent: true });
+  return { meta: data, loading };
 }

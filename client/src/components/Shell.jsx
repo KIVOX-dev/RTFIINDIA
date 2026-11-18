@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { Link, NavLink, useLocation } from 'react-router-dom';
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { Icon, Logo, Button, EASE } from '../ui/index.js';
-import { useSettings } from '../lib/hooks.jsx';
-import { useFetch } from '../lib/api.js';
+import { Icon, Logo, Button, Dropdown, EASE } from '../ui/index.js';
+import { useSettings, usePriceMeta } from '../lib/hooks.jsx';
+import { useUser } from '../lib/userAuth.jsx';
 import { fmtDate } from '../lib/format.js';
 
 const SOCIAL = [['instagram', 'Instagram'], ['linkedin', 'LinkedIn'], ['youtube', 'YouTube'], ['facebook', 'Facebook']];
-const PRICES = [['/prices/yarn', 'Yarn Price List'], ['/prices/cai', 'CAI Spot Rate'], ['/reference', 'Reference charts']];
+const PRICES = [['/prices/yarn', 'Yarn Price List'], ['/prices/cai', 'CAI Spot Rate'], ['/reference', 'Reference charts']]; // price links open the member dashboard (or the sign-in teaser)
 const MORE = [['/blog', 'Blog'], ['/events', 'Events'], ['/awards', 'RTF Awards'], ['/gallery', 'Gallery'], ['/members/grey-yarn', 'Grey Yarn Members']];
 
 function NavMenu({ label, items, active }) {
@@ -34,23 +34,39 @@ function NavMenu({ label, items, active }) {
 
 export function Announce() {
   const { s } = useSettings();
-  const { data } = useFetch('/prices/yarn', { silent: true });
-  const live = data?.isToday;
+  const { meta } = usePriceMeta();
+  const { user } = useUser();
+  const live = meta?.yarn?.isToday;
   return (
     <div className="announce no-print">
       <div className="container announce-in">
         <b>{s.site?.short || 'RTF'} rates</b>
         <span className="announce-msg">
-          {live ? `Yarn and CAI rates for ${fmtDate(data.date, { day: 'numeric', month: 'long' })} are live` : 'Check the latest Open End yarn price list and CAI spot rates'}
+          {live ? `Today's rates (${fmtDate(meta.yarn.date, { day: 'numeric', month: 'long' })}) are out. ${user ? 'Open your dashboard to view them.' : 'Sign in to view.'}` : 'Daily Open End yarn and CAI spot rates for RTF members'}
         </span>
-        <Link to="/prices/yarn" className="announce-btn">View rates</Link>
+        <Link to={user ? '/dashboard' : '/login'} className="announce-btn">{user ? 'View rates' : 'Member login'}</Link>
       </div>
     </div>
   );
 }
 
+function AccountMenu() {
+  const { user, logout } = useUser();
+  const nav = useNavigate();
+  if (!user) return <Button to="/login" variant="glass" size="sm" className="hdr-cta hdr-login" icon="lock">Member Login</Button>;
+  return (
+    <>
+      <Button to="/dashboard" variant="glass" size="sm" className="hdr-cta hdr-login">Dashboard</Button>
+      <Dropdown label="Account" align="right" value="" buttonClass="avatar-btn hdr-login" icon="users"
+        onChange={(v) => (v === 'out' ? (logout(), nav('/')) : nav(v === 'profile' ? '/dashboard?tab=profile' : '/dashboard'))}
+        options={[{ value: 'dash', label: user.name }, { value: 'profile', label: 'Profile' }, { value: 'out', label: 'Sign out' }]} />
+    </>
+  );
+}
+
 export function Header() {
   const { s } = useSettings();
+  const { user } = useUser();
   const [scrolled, setScrolled] = useState(false);
   const [sheet, setSheet] = useState(false);
   const loc = useLocation();
@@ -79,7 +95,7 @@ export function Header() {
           <NavLink to="/contact" className="nav-link">Contact</NavLink>
           <NavMenu label="More" items={MORE} active={MORE.some(([p]) => at(p))} />
         </nav>
-        <Button to="/admin" variant="glass" size="sm" className="hdr-cta hdr-login">Admin login</Button>
+        <AccountMenu />
         <Button to="/about" size="sm" className="hdr-cta" arrow>Join RTF</Button>
         <button className="burger" aria-label="Open menu" aria-expanded={sheet} onClick={() => setSheet(true)}><Icon name="menu" size={26} /></button>
       </div>
@@ -91,7 +107,7 @@ export function Header() {
               <button className="burger" aria-label="Close menu" onClick={() => setSheet(false)}><Icon name="close" size={26} /></button>
             </div>
             <nav aria-label="Mobile">
-              {[['/', 'Home'], ['/about', 'About'], ['/prices/yarn', 'Yarn Price List'], ['/prices/cai', 'CAI Spot Rate'], ['/news', 'News'], ...MORE, ['/reference', 'Reference charts'], ['/contact', 'Contact']].map(([to, t], i) => (
+              {[['/', 'Home'], ['/about', 'About'], ['/prices/yarn', 'Yarn Price List'], ['/prices/cai', 'CAI Spot Rate'], ['/news', 'News'], ...MORE, ['/reference', 'Reference charts'], ['/contact', 'Contact'], user ? ['/dashboard', 'My dashboard'] : ['/login', 'Member login']].map(([to, t], i) => (
                 <m.div key={to} initial={{ opacity: 0, x: rm ? 0 : -12 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.04 * i, ease: EASE }}>
                   <Link to={to} className="sheet-link">{t}<Icon name="arrow" size={18} /></Link>
                 </m.div>
@@ -133,7 +149,7 @@ export function Footer() {
       </div>
       <div className="container foot-bar">
         <span>© {new Date().getFullYear()} {s.site?.name}. All rights reserved.</span>
-        <span>{s.footer?.credit}</span>
+        <span>{s.footer?.credit} <Link to="/admin" className="foot-admin">Admin</Link></span>
       </div>
     </footer>
   );

@@ -4,11 +4,15 @@ import { LazyMotion, domAnimation } from 'framer-motion';
 import { Splash, TopLoader, PageTransition, ToastProvider, Skeleton } from './ui/index.js';
 import { Announce, Header, Footer, ErrorCard } from './components/Shell.jsx';
 import { SettingsProvider, useSettings } from './lib/hooks.jsx';
+import { UserAuthProvider, RequireUser } from './lib/userAuth.jsx';
 import Home from './pages/Home.jsx';
 
 const Prices = lazy(() => import('./pages/Prices.jsx'));
 const News = lazy(() => import('./pages/News.jsx'));
 const Content = lazy(() => import('./pages/Content.jsx'));
+const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
+const authPick = (k) => lazy(() => import('./pages/Auth.jsx').then((m) => ({ default: m[k] })));
+const Login = authPick('Login'), Register = authPick('Register'), Forgot = authPick('Forgot'), Reset = authPick('Reset');
 const Design = lazy(() => import('./pages/Design.jsx'));
 const Admin = lazy(() => import('./admin/Admin.jsx'));
 const pick = (k) => lazy(() => import('./pages/Content.jsx').then((m) => ({ default: m[k] })));
@@ -44,6 +48,11 @@ function Public() {
                   <Route path="/about" element={<About />} />
                   <Route path="/prices" element={<Navigate to="/prices/yarn" replace />} />
                   <Route path="/prices/:type" element={<Prices />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/forgot-password" element={<Forgot />} />
+                  <Route path="/reset-password/:token" element={<Reset />} />
+                  <Route path="/dashboard" element={<RequireUser><Dashboard /></RequireUser>} />
                   <Route path="/reference" element={<Reference />} />
                   <Route path="/news" element={<NewsPage />} />
                   <Route path="/news/:slug" element={<PostDetail kind="news" />} />
@@ -76,7 +85,9 @@ export default function App() {
       <ToastProvider>
         <TopLoader />
         <SettingsProvider>
-          {admin ? <Suspense fallback={<Fallback />}><Admin /></Suspense> : <Public />}
+          <UserAuthProvider>
+            {admin ? <Suspense fallback={<Fallback />}><Admin /></Suspense> : <Public />}
+          </UserAuthProvider>
         </SettingsProvider>
       </ToastProvider>
     </LazyMotion>

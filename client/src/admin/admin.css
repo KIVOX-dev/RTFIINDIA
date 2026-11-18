@@ -70,3 +70,11 @@
   .adm-body { padding: 16px; } .topbar { padding: 10px 16px; } .hide-s { display: none; } .two { grid-template-columns: 1fr; }
   .prow { flex-direction: column; align-items: stretch; } .savebar { border-radius: var(--r-3); bottom: 76px; flex-wrap: wrap; }
 }
+
+/* member accounts + AI status */
+.ai-keys { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 8px; }
+.ai-keys li { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.temp-pw { margin: 16px 0; }
+.temp-pw code { font-size: 1.4rem; letter-spacing: 0.04em; padding: 10px 14px; background: var(--blue-wash); border-radius: var(--r-3); user-select: all; }
+.alert-preview { display: grid; gap: 4px; margin-top: 12px; padding: 12px 14px; border-radius: var(--r-3); background: var(--blue-wash); }
+.alert-preview p { margin: 0; }

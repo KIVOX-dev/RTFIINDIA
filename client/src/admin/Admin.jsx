@@ -8,10 +8,11 @@ import './admin.css';
 
 const PriceEditor = lazy(() => import('./PriceEditor.jsx'));
 const Manage = lazy(() => import('./Manage.jsx'));
+const Users = lazy(() => import('./Users.jsx'));
 
 const NAV = [
   ['/admin', 'Dashboard', 'dash', true], ['/admin/prices', 'Prices', 'price'], ['/admin/news', 'News', 'news'], ['/admin/posts', 'Blog & Events', 'doc'],
-  ['/admin/reference', 'Reference', 'ref'], ['/admin/members', 'Members', 'users'], ['/admin/gallery', 'Gallery', 'image'], ['/admin/awards', 'Awards', 'award'],
+  ['/admin/reference', 'Reference', 'ref'], ['/admin/users', 'Member accounts', 'users'], ['/admin/members', 'Committee', 'community'], ['/admin/gallery', 'Gallery', 'image'], ['/admin/awards', 'Awards', 'award'],
   ['/admin/inbox', 'Inbox', 'inbox'], ['/admin/settings', 'Site text', 'cog'],
 ];
 
@@ -61,6 +62,26 @@ function PasswordModal({ open, onClose }) {
   );
 }
 
+function AiStatus() {
+  const { data } = useFetch('/ai/status', { admin: true, silent: true });
+  if (!data) return null;
+  const live = data.keys.filter((k) => !k.disabled && !k.cooldownUntil).length;
+  return (
+    <GlassCard className="pad ai-status">
+      <div className="row wrap" style={{ gap: 10 }}>
+        <Icon name="sparkle" size={18} /><b>AI assistant</b>
+        <Pill tone={!data.configured ? 'amber' : live ? 'up' : 'down'}>{!data.configured ? 'No keys set' : `${live} of ${data.keys.length} keys ready`}</Pill>
+        <span className="muted small">{data.models.join(' → ')}</span>
+      </div>
+      {data.keys.length > 0 && (
+        <ul className="ai-keys">{data.keys.map((k) => (
+          <li key={k.slot}><code>{k.key}</code>
+            <Pill tone={k.disabled ? 'down' : k.cooldownUntil ? 'amber' : 'up'}>{k.disabled ? 'disabled' : k.cooldownUntil ? `cooling until ${fmtDateTime(k.cooldownUntil)}` : 'ready'}</Pill>
+            <span className="muted small">{k.requests} calls, {k.failures} failed{k.lastError ? ` (${k.lastError})` : ''}</span></li>))}</ul>)}
+    </GlassCard>
+  );
+}
+
 export function Dashboard() {
   const { data: sum, loading } = useFetch('/summary', { admin: true });
   const Stat = ({ label, ok, text, sub, to }) => (
@@ -77,7 +98,9 @@ export function Dashboard() {
         <Stat label="CAI spot rate today" ok={sum?.cai.publishedToday} sub={sum?.cai.updatedAt && `Last: ${fmtDateTime(sum.cai.updatedAt)}`} to="/admin/prices?type=cai" />
         <Stat label="News cards" text={sum?.posts} sub={sum?.scheduled ? `${sum.scheduled} scheduled` : 'None scheduled'} to="/admin/news" />
         <Stat label="Unread messages" text={sum?.unread} to="/admin/inbox" />
+        <Stat label="Members awaiting approval" text={sum?.pendingUsers} sub="Approve to let them view rates" to="/admin/users" />
       </div>
+      <AiStatus />
       <GlassCard className="cta-admin"><div><h2>Update today's rates</h2><p className="muted">Start from yesterday's list, change what moved, and publish.</p></div><Button to="/admin/prices" size="lg" arrow>Update rates</Button></GlassCard>
       <div><h2 className="h2" style={{ marginBottom: 12 }}>Quick post</h2><PostComposer kind="news" compact /></div>
     </div>
@@ -96,7 +119,7 @@ function Shell({ onLogout }) {
       <aside className="side" aria-label="Admin">
         <Link to="/admin" className="side-brand"><Logo size={30} light /><span>RTF Admin</span></Link>
         <nav>{NAV.map(([to, label, icon, end]) => (
-          <NavLink key={to} to={to} end={end} className="side-link"><Icon name={icon} /><span>{label}</span>{label === 'Inbox' && sum?.unread > 0 && <i className="badge">{sum.unread}</i>}</NavLink>))}</nav>
+          <NavLink key={to} to={to} end={end} className="side-link"><Icon name={icon} /><span>{label}</span>{label === 'Inbox' && sum?.unread > 0 && <i className="badge">{sum.unread}</i>}{label === 'Member accounts' && sum?.pendingUsers > 0 && <i className="badge">{sum.pendingUsers}</i>}</NavLink>))}</nav>
         <a className="side-link side-site" href="/" target="_blank" rel="noopener noreferrer"><Icon name="eye" /><span>View website</span></a>
       </aside>
       <div className="adm-main">
@@ -114,6 +137,7 @@ function Shell({ onLogout }) {
               <Route path="/admin/news" element={<Posts kind="news" />} />
               <Route path="/admin/posts" element={<Posts kind="blog" multi />} />
               <Route path="/admin/reference" element={<Manage kind="reference" onSaved={reload} />} />
+              <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/members" element={<Manage kind="members" onSaved={reload} />} />
               <Route path="/admin/gallery" element={<Manage kind="gallery" onSaved={reload} />} />
               <Route path="/admin/awards" element={<Manage kind="awards" onSaved={reload} />} />

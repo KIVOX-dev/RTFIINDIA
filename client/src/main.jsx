@@ -19,6 +19,7 @@ import './styles/team.css';
 import './styles/mock.css';
 import './styles/about.css';
 import './styles/cotton.css';
+import './styles/member.css';
 import App from './App.jsx';
 
 // Low-end devices get solid cards and no blob animation (backdrop-filter is the main cost on cheap Android phones)

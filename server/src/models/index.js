@@ -3,13 +3,21 @@ const { Schema, model } = mongoose;
 
 const Admin = model('Admin', new Schema({ email: { type: String, unique: true, lowercase: true }, passwordHash: String }, { timestamps: true }));
 
+const User = model('User', new Schema(
+  { name: { type: String, required: true, maxlength: 80 }, email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    phone: { type: String, default: '' }, millName: { type: String, default: '' }, city: { type: String, default: '' }, passwordHash: { type: String, required: true },
+    status: { type: String, enum: ['pending', 'approved', 'blocked'], default: 'pending', index: true },
+    lastLoginAt: Date, resetTokenHash: String, resetExpires: Date },
+  { timestamps: true }));
+
 const rowSchema = new Schema(
   { item: { type: String, required: true, maxlength: 120 }, unit: { type: String, default: '', maxlength: 30 },
     rate: { type: Number, default: null }, prev: { type: Number, default: null }, note: { type: String, default: '', maxlength: 200 } },
   { _id: false });
 const priceSchema = new Schema(
   { type: { type: String, enum: ['yarn', 'cai'], required: true }, date: { type: String, required: true }, // YYYY-MM-DD (IST)
-    rows: [rowSchema], poster: { type: String, default: '' }, posterName: { type: String, default: '' } },
+    rows: [rowSchema], poster: { type: String, default: '' }, posterName: { type: String, default: '' },
+    aiSummary: { type: String, default: '' } },
   { timestamps: true });
 priceSchema.index({ type: 1, date: -1 }, { unique: true });
 const PriceList = model('PriceList', priceSchema);
@@ -52,4 +60,4 @@ const Message = model('Message', new Schema(
   { name: String, phone: String, mill: { type: String, default: '' }, message: String, read: { type: Boolean, default: false }, ip: String },
   { timestamps: true }));
 
-export { Admin, PriceList, Post, GalleryItem, Award, Member, Setting, ReferenceChart, Message };
+export { Admin, User, PriceList, Post, GalleryItem, Award, Member, Setting, ReferenceChart, Message };

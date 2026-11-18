@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Button, GlassCard, Icon, Modal, Pill, Skeleton, Switch, Tabs, Input, Textarea, useToast } from '../ui/index.js';
+import { Button, GlassCard, Icon, Modal, Pill, Skeleton, Switch, Tabs, useToast } from '../ui/index.js';
 import { PriceTable } from '../components/Prices.jsx';
 import { adminApi, clearCache } from '../lib/api.js';
 import { fmtDate, num, todayIST, delta } from '../lib/format.js';
@@ -17,7 +17,7 @@ export default function PriceEditor() {
   const [poster, setPoster] = useState({ url: '', name: '' });
   const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(true), [saving, setSaving] = useState(false), [confirm, setConfirm] = useState(false);
-  const [alertOn, setAlertOn] = useState(true), [alertHead, setAlertHead] = useState(''), [alertText, setAlertText] = useState('');
+  const [alertOn, setAlertOn] = useState(true);
   const refs = useRef({});
   const fileRef = useRef(), posterRef = useRef();
 
@@ -82,17 +82,12 @@ export default function PriceEditor() {
     const bad = rows.some((r) => r.item.trim() && parseNum(r.rate) == null);
     if (!clean.length) return toast.error('Add at least one item.');
     if (bad) return toast.error('Some items have no rate. Fill or remove them.');
-    const movers = [...clean].filter((r) => delta(r)).sort((a, b) => Math.abs(delta(b)) - Math.abs(delta(a))).slice(0, 3);
-    const nm = type === 'yarn' ? 'Yarn' : 'CAI';
-    const mv = movers.map((r) => `${r.item} ${delta(r) > 0 ? '▲' : '▼'}${num(Math.abs(delta(r)))}`).join(', ');
-    setAlertHead(movers.length ? `${nm} rates: ${mv}`.slice(0, 90) : `${nm} rates updated for ${fmtDate(date, { day: 'numeric', month: 'short' })}`);
-    setAlertText(movers.length ? `Biggest movers today: ${movers.map((r) => `${r.item} ${num(r.rate)} (${delta(r) > 0 ? '+' : ''}${num(delta(r))})`).join(', ')}. See the full list.` : 'Open the price page for the full list.');
     setConfirm(true);
   };
   const save = async () => {
     setSaving(true);
     try {
-      await adminApi.put(`/prices/${type}/${date}`, { rows: clean, poster: poster.url, posterName: poster.name, alert: alertOn ? { create: true, headline: alertHead, text: alertText } : undefined });
+      await adminApi.put(`/prices/${type}/${date}`, { rows: clean, poster: poster.url, posterName: poster.name, alert: alertOn ? { create: true } : undefined });
       clearCache(); toast.success('Rates published'); setConfirm(false); load();
     } catch (x) { toast.error(x.message); } finally { setSaving(false); }
   };
@@ -153,11 +148,13 @@ export default function PriceEditor() {
           <div><Pill tone="flat">{diff.same.length} unchanged</Pill><p className="muted small">{diff.same.map((r) => r.item).join(', ') || '–'}</p></div>
         </div>
         <div className="alert-box">
-          <Switch label="Also post a Price alert card" checked={alertOn} onChange={setAlertOn} />
-          {alertOn && <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
-            <Input label="Card headline" value={alertHead} onChange={(e) => setAlertHead(e.target.value)} maxLength={90} hint={`${alertHead.length} / 90`} />
-            <Textarea label="Card text" value={alertText} onChange={(e) => setAlertText(e.target.value)} maxLength={280} hint={`${alertText.length} / 280`} style={{ minHeight: 80 }} />
-          </div>}
+          <Switch label="Also post a public Price alert card (no rates)" checked={alertOn} onChange={setAlertOn} />
+          {alertOn && (
+            <div className="alert-preview">
+              <b>{type === 'yarn' ? 'Yarn' : 'CAI'} prices updated for {fmtDate(date, { day: 'numeric', month: 'short' })}</b>
+              <p>Today's {type === 'yarn' ? 'yarn' : 'CAI'} prices are published. Sign in to view.</p>
+              <span className="muted small">Rates are for members only, so this public card never contains any figures. It links to the member dashboard.</span>
+            </div>)}
         </div>
       </Modal>
     </div>

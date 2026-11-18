@@ -2,6 +2,7 @@ import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { PriceList, Post, GalleryItem, Award, Member, Setting, ReferenceChart, Message } from '../models/index.js';
 import { todayIST, clean, cleanLong, isDate } from '../util.js';
+import { sendMail } from '../mail.js';
 
 const r = Router();
 const PT = ['yarn', 'cai'];
@@ -18,36 +19,17 @@ r.get('/stats', async (_q, res) => {
   res.json(s?.value || []);
 });
 
-// ---- prices
-const shape = (d) =>
-  d && { type: d.type, date: d.date, rows: d.rows, poster: d.poster, posterName: d.posterName, updatedAt: d.updatedAt, isToday: d.date === todayIST() };
-r.get('/prices/:type/dates', async (req, res) => {
-  if (!PT.includes(req.params.type)) return res.status(404).json({ error: 'Unknown list' });
-  const docs = await PriceList.find({ type: req.params.type, date: { $lte: todayIST() } }).sort({ date: -1 }).limit(120).select('date').lean();
-  res.json(docs.map((d) => d.date));
-});
-r.get('/prices/:type/series', async (req, res) => {
-  if (!PT.includes(req.params.type)) return res.status(404).json({ error: 'Unknown list' });
-  const days = Math.min(Number(req.query.days) || 30, 90);
-  const docs = (await PriceList.find({ type: req.params.type, date: { $lte: todayIST() } }).sort({ date: -1 }).limit(days).lean()).reverse();
-  const series = {};
-  docs.forEach((d, i) =>
-    d.rows.forEach((row) => {
-      (series[row.item] ||= Array(docs.length).fill(null))[i] = row.rate;
-    }));
-  res.json({ dates: docs.map((d) => d.date), series });
-});
-r.get('/prices/:type', async (req, res) => {
-  const { type } = req.params;
-  if (!PT.includes(type)) return res.status(404).json({ error: 'Unknown list' });
-  const q = { type, date: { $lte: todayIST() } };
-  if (req.query.date) {
-    if (!isDate(String(req.query.date))) return res.status(400).json({ error: 'Bad date' });
-    q.date = String(req.query.date);
+// ---- prices are members-only (see routes/member.js). The public site only learns *that* a list exists.
+const labels = { yarn: 'Yarn Price List', cai: 'CAI Spot Rate' };
+r.get('/price-meta', async (_q, res) => {
+  const out = {};
+  for (const type of PT) {
+    const d = await PriceList.findOne({ type, date: { $lte: todayIST() } }).sort({ date: -1 }).select('date updatedAt rows.item').lean();
+    out[type] = { label: labels[type], date: d?.date || null, updatedAt: d?.updatedAt || null, isToday: d?.date === todayIST(), items: (d?.rows || []).map((x) => x.item) };
   }
-  const doc = await PriceList.findOne(q).sort({ date: -1 }).lean();
-  res.json(shape(doc) || { type, empty: true });
+  res.json(out);
 });
+r.use('/prices', (_q, res) => res.status(403).json({ error: 'Price lists are for registered members. Please sign in.', code: 'members_only' }));
 
 // ---- posts
 function pubPost(p) {
@@ -126,18 +108,9 @@ r.post('/contact', contactLimit, async (req, res) => {
   if (message.length < 5) errors.message = 'Please write a short message';
   if (Object.keys(errors).length) return res.status(422).json({ error: 'Please check the form', errors });
   await Message.create({ name, phone, mill, message, ip: req.ip });
-  if (process.env.BREVO_API_KEY && process.env.CONTACT_NOTIFY_EMAIL) {
-    fetch('https://api.brevo.com/v3/smtp/email', {
-      method: 'POST',
-      headers: { 'api-key': process.env.BREVO_API_KEY, 'content-type': 'application/json' },
-      body: JSON.stringify({
-        sender: { email: process.env.BREVO_SENDER_EMAIL, name: 'RTF website' },
-        to: [{ email: process.env.CONTACT_NOTIFY_EMAIL }],
-        subject: `New RTF enquiry from ${name}`,
-        textContent: `${name} (${phone}) ${mill}\n\n${message}`,
-      }),
-    }).catch((e) => console.warn('[brevo]', e.message));
-  }
+  sendMail({ to: process.env.CONTACT_NOTIFY_EMAIL, subject: `New RTF enquiry from ${name}`, text: `${name} (${phone}) ${mill}
+
+${message}` });
   res.status(201).json({ ok: true });
 });
 

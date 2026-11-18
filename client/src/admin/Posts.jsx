@@ -14,7 +14,18 @@ export function PostComposer({ kind = 'news', initial, onSaved, onCancel, compac
   const cats = (s.categories || []).map((c) => c.name);
   const [f, setF] = useState(() => (initial ? { ...blank(kind, cats[0] || ''), ...initial, when: new Date(initial.publishAt) > new Date() ? 'later' : 'now', publishAt: toLocalInput(initial.publishAt) } : blank(kind, '')));
   const [busy, setBusy] = useState(false), [up, setUp] = useState(false), [errs, setErrs] = useState({}), [full, setFull] = useState(kind !== 'news' || !!initial?.body);
+  const [drafting, setDrafting] = useState(false);
   const fileRef = useRef(), pdfRef = useRef();
+  const draft = async () => {
+    if (f.body.trim() && !window.confirm('Replace the current full text with an AI draft?')) return;
+    setDrafting(true);
+    try {
+      const r = await adminApi.post('/ai/draft', { kind, title: f.title, notes: f.summary });
+      setF((o) => ({ ...o, summary: o.summary.trim() ? o.summary : r.summary, body: r.body }));
+      setFull(true);
+      toast.info('Draft added. Please read and edit it before you publish.');
+    } catch (x) { toast.error(x.message); } finally { setDrafting(false); }
+  };
   useEffect(() => { if (!f.category && cats[0]) setF((o) => ({ ...o, category: cats[0] })); }, [cats.length]); // eslint-disable-line
   const set = (k) => (e) => setF((o) => ({ ...o, [k]: e.target.value }));
   const pickImage = async (e) => {
@@ -52,6 +63,11 @@ export function PostComposer({ kind = 'news', initial, onSaved, onCancel, compac
       <GlassCard className="pad fields">
         <Input label="Headline" value={f.title} onChange={set('title')} maxLength={90} error={errs.title} hint={`${f.title.length} / 90`} />
         <Textarea label="Short text" value={f.summary} onChange={set('summary')} maxLength={280} hint={`${f.summary.length} / 280`} style={{ minHeight: 90 }} />
+        {!compact && (
+          <div className="photo-row">
+            <Button variant="glass" size="sm" icon="sparkle" loading={drafting} disabled={!f.title.trim() && !f.summary.trim()} onClick={draft}>Draft with AI</Button>
+            <span className="muted small">Writes the full text from your headline and short text. Always review before publishing.</span>
+          </div>)}
         <div className="two">
           <Select label="Category" value={f.category} onChange={set('category')} options={cats} />
           {kind === 'event' && <Input label="Event date (text)" value={f.eventDate} onChange={set('eventDate')} />}

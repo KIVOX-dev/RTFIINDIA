@@ -16,18 +16,27 @@ export const auth = {
   clear: () => { try { localStorage.removeItem(TOKEN); } catch { /* storage blocked */ } },
 };
 
-async function request(method, url, body, { admin = false, silent = false } = {}) {
+const USER_TOKEN = 'rtf_user_token';
+export const userToken = {
+  get: () => { try { return localStorage.getItem(USER_TOKEN); } catch { return null; } },
+  set: (t) => { try { localStorage.setItem(USER_TOKEN, t); } catch { /* storage blocked */ } },
+  clear: () => { try { localStorage.removeItem(USER_TOKEN); } catch { /* storage blocked */ } },
+};
+
+async function request(method, url, body, { admin = false, member = false, silent = false } = {}) {
   const headers = {};
   let payload;
   if (body instanceof FormData) payload = body;
   else if (body !== undefined) { headers['content-type'] = 'application/json'; payload = JSON.stringify(body); }
   if (admin && auth.get()) headers.authorization = `Bearer ${auth.get()}`;
+  if (member && userToken.get()) headers.authorization = `Bearer ${userToken.get()}`;
   if (!silent) progress.inc();
   try {
     const res = await fetch(url, { method, headers, body: payload });
     const data = res.status === 204 ? null : await res.json().catch(() => ({}));
     if (!res.ok) {
       if (res.status === 401 && admin) { auth.clear(); window.dispatchEvent(new Event('rtf-auth-lost')); }
+      if (res.status === 401 && member) { userToken.clear(); window.dispatchEvent(new Event('rtf-user-auth-lost')); }
       const err = new Error(data?.error || `Request failed (${res.status})`);
       err.status = res.status; err.fields = data?.errors;
       throw err;
@@ -51,25 +60,41 @@ export const adminApi = {
   upload: async (file) => { const f = new FormData(); f.append('file', file); return request('POST', '/api/admin/upload', f, { admin: true }); },
 };
 
+/** Member API: sends the member token. A 401 clears it and fires rtf-user-auth-lost (the app then redirects to /login). */
+export const memberApi = {
+  get: (u, o) => request('GET', `/api/member${u}`, undefined, { member: true, ...o }),
+  post: (u, b, o) => request('POST', `/api/member${u}`, b, { member: true, ...o }),
+  put: (u, b, o) => request('PUT', `/api/member${u}`, b, { member: true, ...o }),
+};
+/** Sign-in / sign-up calls (no token). */
+export const userAuthApi = {
+  login: (email, password) => request('POST', '/api/user-auth/login', { email, password }),
+  register: (body) => request('POST', '/api/user-auth/register', body),
+  me: () => request('GET', '/api/user-auth/me', undefined, { member: true, silent: true }),
+  forgot: (email) => request('POST', '/api/user-auth/forgot-password', { email }),
+  reset: (token, password) => request('POST', '/api/user-auth/reset-password', { token, password }),
+};
+
 const cache = new Map();
 /** GET with loading/error state. `key` null skips fetching. */
-export function useFetch(path, { admin = false, silent = false, deps = [] } = {}) {
-  const [state, setState] = useState(() => ({ data: cache.get(path) ?? null, error: null, loading: path != null && !cache.has(path) }));
+export function useFetch(path, { admin = false, member = false, silent = false, deps = [] } = {}) {
+  const ck = path == null ? null : `${admin ? 'a' : member ? 'm' : 'p'}:${path}`; // admin / member / public never share cache entries
+  const [state, setState] = useState(() => ({ data: cache.get(ck) ?? null, error: null, loading: path != null && !cache.has(ck) }));
   const tick = useRef(0);
   const load = useCallback(async (quiet) => {
     if (path == null) return;
     const id = ++tick.current;
     if (!quiet) setState((s) => ({ ...s, loading: true, error: null }));
     try {
-      const data = await (admin ? adminApi : api).get(path, { silent: silent || quiet });
-      cache.set(path, data);
+      const data = await (admin ? adminApi : member ? memberApi : api).get(path, { silent: silent || quiet });
+      cache.set(ck, data);
       if (id === tick.current) setState({ data, error: null, loading: false });
     } catch (error) {
       if (id === tick.current) setState((s) => ({ ...s, error, loading: false }));
     }
-  }, [path, admin, silent]);
+  }, [path, ck, admin, member, silent]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { load(cache.has(path)); }, [load, ...deps]);
+  useEffect(() => { load(cache.has(ck)); }, [load, ...deps]);
   return { ...state, reload: () => load(false) };
 }
 export const clearCache = () => cache.clear();

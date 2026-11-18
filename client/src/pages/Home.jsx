@@ -3,17 +3,13 @@ import { Link } from 'react-router-dom';
 import { m, AnimatePresence, useMotionValue, useSpring, useReducedMotion } from 'framer-motion';
 import { Button, GlassCard, CottonField, Icon, Pill, Reveal, Skeleton, Marquee, AnimatedNumber, Sparkline, Tabs } from '../ui/index.js';
 import { NewsCard } from '../components/Cards.jsx';
-import { Change } from '../components/Prices.jsx';
 import { useFetch } from '../lib/api.js';
-import { useSettings, useSeo } from '../lib/hooks.jsx';
-import { num, fmtDate, initials, trend, delta } from '../lib/format.js';
+import { useSettings, useSeo, usePriceMeta } from '../lib/hooks.jsx';
+import { useUser } from '../lib/userAuth.jsx';
+import { num, fmtDate, fmtDateTime, initials, trend, delta } from '../lib/format.js';
 
 const TINTS = ['blue', 'teal', 'mint', 'lilac', 'sand', 'rose'];
 
-function Arrow({ r }) {
-  const t = trend(r), d = delta(r);
-  return <span className={`chg ${t}`}>{t === 'flat' ? '–' : <><Icon name={t} size={12} strokeWidth={2.6} />{num(Math.abs(d))}</>}</span>;
-}
 
 /** Pastel illustration used on every tile (original artwork, built from the icon set). */
 export function Illus({ icon, tint = 'blue', i = 0 }) {
@@ -30,11 +26,10 @@ export function Illus({ icon, tint = 'blue', i = 0 }) {
   );
 }
 
-function Hero({ yarn }) {
+function Hero({ meta, loading }) {
   const { s } = useSettings();
   const rm = true; // no floating / cursor-tilt / parallax: the stacking boxes are the only page motion
   const h = s.hero || {};
-  const series = useFetch('/prices/yarn/series?days=30', { silent: true });
   const rx = useSpring(useMotionValue(0), { stiffness: 120, damping: 14 });
   const ry = useSpring(useMotionValue(0), { stiffness: 120, damping: 14 });
   const move = (e) => {
@@ -45,8 +40,8 @@ function Hero({ yarn }) {
   };
   const words = (h.tagline || '').split(' ');
   const cut = Math.min(3, Math.max(1, words.length - 2));
-  const list = yarn.data;
-  const first = list?.rows?.[0];
+  const list = meta?.yarn;
+  const names = (list?.items || []).slice(0, 4);
   return (
     <section className="hero2" onPointerMove={(e) => { if (!rm && e.pointerType !== 'touch') e.currentTarget.style.setProperty('--mx', `${((e.clientX / window.innerWidth) - 0.5) * -40}px`); }}>
 <video className="hero2-bg hero2-video" src="/textile_fabric.mp4" autoPlay muted loop playsInline preload="auto" aria-hidden="true" />
@@ -66,27 +61,22 @@ function Hero({ yarn }) {
               <div className="mk-top">
                 <span className="mk-ic"><Icon name="price" size={18} /></span>
                 <div className="mk-title"><b>Yarn Price List</b><span>Open End yarn · ₹ per kg</span></div>
-                {list?.isToday ? <Pill tone="new"><span className="dot" />Live</Pill> : list?.date && <Pill>{fmtDate(list.date, { day: 'numeric', month: 'short' })}</Pill>}
+                {list?.isToday ? <Pill tone="new"><span className="dot" />Updated today</Pill> : list?.date && <Pill>{fmtDate(list.date, { day: 'numeric', month: 'short' })}</Pill>}
               </div>
-              <div className="mk-cols"><span>Count</span><span>Rate</span><span>Change</span></div>
+              <div className="mk-cols"><span>Count</span><span>Rate</span><span>Access</span></div>
               <div className="mk-rows">
-                {yarn.loading || !list?.rows ? [0, 1, 2, 3].map((i) => <div key={i} className="mk-row"><Skeleton w={40} h={18} /><Skeleton w={60} h={18} /><Skeleton w={70} h={24} r={999} /></div>)
-                  : list.rows.slice(0, 4).map((r) => (
-                    <div key={r.item} className="mk-row">
-                      <b>{r.item}</b>
-                      <span className="mk-rate"><AnimatedNumber value={r.rate} from={r.prev ?? r.rate} format={num} /></span>
-                      <Change r={r} />
+                {loading || !names.length ? [0, 1, 2, 3].map((i) => <div key={i} className="mk-row"><Skeleton w={40} h={18} /><Skeleton w={60} h={18} /><Skeleton w={70} h={24} r={999} /></div>)
+                  : names.map((n, i) => (
+                    <div key={n} className="mk-row">
+                      <b>{n}</b>
+                      <span className="mk-rate blur" aria-hidden="true">{(1180 + i * 41).toLocaleString('en-IN')}</span>
+                      <Pill icon="lock">Members</Pill>
                     </div>))}
               </div>
-              {first && series.data?.series?.[first.item] && (() => {
-                const vals = series.data.series[first.item].filter((v) => v != null);
-                return (
-                  <div className="mk-chart">
-                    <div className="mk-chart-h"><b>{first.item} · 30 days</b><span>₹{num(Math.min(...vals))} – ₹{num(Math.max(...vals))}</span></div>
-                    <Sparkline values={series.data.series[first.item]} h={70} label={`${first.item} trend`} />
-                  </div>
-                );
-              })()}
+              <div className="mk-lock">
+                <Icon name="lock" size={16} />
+                <span>{list?.updatedAt ? `Last published ${fmtDateTime(list.updatedAt)} IST.` : 'Published daily.'} Sign in to view the rates.</span>
+              </div>
             </m.div>
           </div>
         </div>
@@ -122,18 +112,18 @@ function MillMarquee() {
 }
 
 function PhoneRates({ yarn }) {
-  const rows = yarn?.rows?.slice(0, 3) || [];
+  const rows = (yarn?.items || []).slice(0, 3);
   return (
     <div className="phone" aria-hidden="true">
-      <div className="ph-top"><span className="ph-logo">R</span><b>RTF Yarn Price List</b><span className="ph-live"><span className="dot" />Live</span></div>
+      <div className="ph-top"><span className="ph-logo">R</span><b>RTF Yarn Price List</b><span className="ph-live"><span className="dot" />Members</span></div>
       <div className="ph-bar"><span>Rates for</span><b>{yarn?.date ? fmtDate(yarn.date, { day: 'numeric', month: 'short', year: 'numeric' }) : '…'}</b></div>
       <div className="ph-sec"><span>Open End yarn, per kg</span><span className="ph-secure"><Icon name="check" size={11} strokeWidth={3} /> Verified</span></div>
-      <div className="ph-btn"><Icon name="whatsapp" size={16} /> Share on WhatsApp</div>
-      <div className="ph-btn"><Icon name="print" size={16} /> Print rates</div>
+      <div className="ph-btn"><Icon name="lock" size={16} /> Member sign in</div>
+      <div className="ph-btn"><Icon name="download" size={16} /> Download CSV</div>
       <div className="ph-or"><i />or<i /></div>
       <div className="ph-rows">
         {rows.map((r) => (
-          <div key={r.item} className="ph-row"><span>{r.item}</span><b>₹{num(r.rate)}</b><Arrow r={r} /></div>
+          <div key={r} className="ph-row"><span>{r}</span><b className="blur">₹1,234</b><Icon name="lock" size={12} /></div>
         ))}
       </div>
     </div>
@@ -158,7 +148,7 @@ function PhoneNews({ news }) {
 function Promo() {
   const { s } = useSettings();
   const rm = useReducedMotion();
-  const yarn = useFetch('/prices/yarn', { silent: true }).data;
+  const yarn = usePriceMeta().meta?.yarn;
   const news = (useFetch('/posts?kind=news&limit=3', { silent: true }).data?.items || []).slice(0, 3);
   const slides = [s.home?.promo, s.home?.promo2].filter(Boolean);
   const [i, setI] = useState(0);
@@ -292,24 +282,31 @@ function SectionNav() {
   );
 }
 
-function PriceTile({ type, title, sub, tint, icon }) {
-  const { data, loading } = useFetch(`/prices/${type}`);
+function PriceTile({ type, title, sub, tint, icon, meta }) {
+  const { user } = useUser();
+  const m = meta?.[type];
+  const names = (m?.items || []).slice(0, 6);
   return (
     <div className="ptile">
       <div className="ptile-head" style={{ background: `var(--tint-${tint})` }}>
         <span className="ptile-ic"><Icon name={icon} size={22} /></span>
         <div><b>{title}</b><span className="muted small">{sub}</span></div>
         <span className="spacer" />
-        {data?.isToday && <Pill tone="new"><span className="dot" />Updated today</Pill>}
-        {data?.date && <Pill>{fmtDate(data.date, { day: 'numeric', month: 'short' })}</Pill>}
+        {m?.isToday && <Pill tone="new"><span className="dot" />Updated today</Pill>}
+        {m?.date && <Pill>{fmtDate(m.date, { day: 'numeric', month: 'short' })}</Pill>}
       </div>
-      <div className="pb-list">
-        {loading ? Array.from({ length: 6 }, (_, i) => <div key={i} className="pb-row"><Skeleton w="30%" h={18} /><span className="spacer" /><Skeleton w="20%" h={18} /></div>)
-          : data?.rows ? data.rows.slice(0, 8).map((r) => (
-            <div key={r.item} className="pb-row"><b>{r.item}</b><span className="muted small">{r.unit}</span><span className="spacer" /><span className="pb-rate">{num(r.rate)}</span><Change r={r} /></div>
+      <div className="pb-list pb-locked">
+        {!meta ? Array.from({ length: 6 }, (_, i) => <div key={i} className="pb-row"><Skeleton w="30%" h={18} /><span className="spacer" /><Skeleton w="20%" h={18} /></div>)
+          : names.length ? names.map((n, i) => (
+            <div key={n} className="pb-row"><b>{n}</b><span className="spacer" /><span className="pb-rate blur" aria-hidden="true">{(1180 + i * 41).toLocaleString('en-IN')}</span><Icon name="lock" size={14} /></div>
           )) : <p className="muted" style={{ padding: '24px 0' }}>Today's rates will be published soon.</p>}
       </div>
-      <Link to={`/prices/${type}`} className="btn btn-glass btn-sm" style={{ margin: '4px 20px 20px' }}>View full list <Icon name="arrow" size={16} className="arrow" /></Link>
+      <p className="muted small" style={{ padding: '0 20px' }}>
+        {m?.updatedAt ? `Last published ${fmtDateTime(m.updatedAt)} IST. ` : ''}Rates are for registered RTF members.
+      </p>
+      <Link to={user ? `/dashboard?tab=${type}` : '/login'} state={user ? undefined : { from: `/dashboard?tab=${type}` }} className="btn btn-glass btn-sm" style={{ margin: '12px 20px 20px' }}>
+        {user ? 'Open in dashboard' : 'Sign in to view rates'} <Icon name="arrow" size={16} className="arrow" />
+      </Link>
     </div>
   );
 }
@@ -343,16 +340,16 @@ const Ok = ({ children, icon = 'check' }) => <span className="fm-chip ok"><Icon 
 
 /** Mini product screens built from live RTF data (prices, members, awards, news). */
 function FeatureMock({ kind }) {
-  const yarn = useFetch('/prices/yarn', { silent: true }).data;
+  const yarn = usePriceMeta().meta?.yarn;
   const members = useFetch('/members', { silent: true }).data || [];
   const awards = useFetch('/awards', { silent: true }).data || [];
   const news = (useFetch('/posts?kind=news&limit=3', { silent: true }).data?.items || []).slice(0, 3);
   const count = (g) => members.filter((m) => m.group === g).length;
   if (kind === 'price') {
-    const rows = yarn?.rows?.slice(0, 3) || [];
+    const rows = (yarn?.items || []).slice(0, 3);
     return (
-      <MockCard title="Yarn price list" tag={<Pill tone={yarn?.isToday ? 'new' : ''}>{yarn?.isToday ? 'Updated today' : yarn?.date ? fmtDate(yarn.date, { day: 'numeric', month: 'short' }) : '…'}</Pill>} foot={<Ok>Published on schedule</Ok>}>
-        {rows.length ? rows.map((r) => <MRow key={r.item} l={`${r.item} yarn`} r={<>₹{num(r.rate)} <Arrow r={r} /></>} />) : [0, 1, 2].map((i) => <MRow key={i} l="–" r="–" />)}
+      <MockCard title="Yarn price list" tag={<Pill tone={yarn?.isToday ? 'new' : ''}>{yarn?.isToday ? 'Updated today' : yarn?.date ? fmtDate(yarn.date, { day: 'numeric', month: 'short' }) : '…'}</Pill>} foot={<Ok icon="lock">Members only</Ok>}>
+        {rows.length ? rows.map((r) => <MRow key={r} l={`${r} yarn`} r={<span className="blur" aria-hidden="true">₹1,234</span>} />) : [0, 1, 2].map((i) => <MRow key={i} l="–" r="–" />)}
       </MockCard>
     );
   }
@@ -547,20 +544,20 @@ export default function Home() {
   const [tab, setTab] = useState('yarn');
   useStackClip();
   useSeo('', s.hero?.tagline);
-  const yarn = useFetch('/prices/yarn');
+  const { meta, loading: metaLoading } = usePriceMeta();
   if (!ready) return <div className="container page-pad section"><Skeleton h={48} w="60%" /><Skeleton h={300} style={{ marginTop: 24 }} r={12} /></div>;
   return (
     <>
-      <Hero yarn={yarn} />
+      <Hero meta={meta} loading={metaLoading} />
       <QuickBar />
       <MillMarquee />
       <Promo />
       <Platform />
       <SectionNav />
-      <SCard id="prices" title="Live price lists" aside={<div className="only-m"><Tabs label="Price list" value={tab} onChange={setTab} tabs={[{ value: 'yarn', label: 'Yarn' }, { value: 'cai', label: 'CAI' }]} /></div>}>
+      <SCard id="prices" title="Member price lists" aside={<div className="only-m"><Tabs label="Price list" value={tab} onChange={setTab} tabs={[{ value: 'yarn', label: 'Yarn' }, { value: 'cai', label: 'CAI' }]} /></div>}>
         <div className="ptiles">
-          <div className={tab === 'yarn' ? '' : 'hide-m'}><PriceTile type="yarn" title="Yarn Price List" sub="OE yarn rates, updated daily" tint="blue" icon="price" /></div>
-          <div className={tab === 'cai' ? '' : 'hide-m'}><PriceTile type="cai" title="CAI Spot Rate" sub="Cotton Association of India spot rates" tint="teal" icon="tag" /></div>
+          <div className={tab === 'yarn' ? '' : 'hide-m'}><PriceTile meta={meta} type="yarn" title="Yarn Price List" sub="OE yarn rates, updated daily" tint="blue" icon="price" /></div>
+          <div className={tab === 'cai' ? '' : 'hide-m'}><PriceTile meta={meta} type="cai" title="CAI Spot Rate" sub="Cotton Association of India spot rates" tint="teal" icon="tag" /></div>
         </div>
       </SCard>
       <News />

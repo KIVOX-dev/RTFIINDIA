@@ -133,12 +133,13 @@ async function migrateAssets() {
   if (logo) { await Setting.updateOne({ key: 'site' }, { $set: { 'value.logoUrl': stageFile(path.join(assetsDir, logo), logo) } }); n++; }
   const cotton = list(assetsDir).find((f) => /^cotton-header\./i.test(f));
   if (cotton) { await Setting.updateOne({ key: 'cai' }, { $set: { 'value.headerUrl': stageFile(path.join(assetsDir, cotton), cotton) } }); n++; }
-  for (const f of list(path.join(assetsDir, 'office'))) {
-    const slug = slugify(path.parse(f).name);
-    const m = await Member.findOne({ group: 'office' }).where('name').regex(new RegExp(`^${slug.split('-')[0]}`, 'i')).lean();
-    const all = await Member.find({ group: 'office' }).lean();
-    const hit = all.find((x) => slugify(x.name) === slug) || m;
-    if (hit) { await Member.updateOne({ _id: hit._id }, { photoUrl: stageFile(path.join(assetsDir, 'office', f), `office/${f}`) }); n++; }
+  for (const group of ['office', 'zonal', 'management']) {
+    const all = await Member.find({ group }).lean();
+    for (const f of list(path.join(assetsDir, group))) {
+      const slug = slugify(path.parse(f).name);
+      const hit = all.find((x) => slugify(x.name) === slug) || all.find((x) => slugify(x.name).startsWith(slug.split('-')[0] + '-'));
+      if (hit) { await Member.updateOne({ _id: hit._id }, { photoUrl: stageFile(path.join(assetsDir, group, f), `${group}/${f}`) }); n++; }
+    }
   }
   const gal = async (folder, category) => {
     let i = 0;

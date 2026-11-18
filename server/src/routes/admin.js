@@ -6,8 +6,11 @@ import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import * as XLSX from 'xlsx';
-import { Admin, PriceList, Post, GalleryItem, Award, Member, Setting, ReferenceChart, Message } from '../models/index.js';
+import { Admin, User, PriceList, Post, GalleryItem, Award, Member, Setting, ReferenceChart, Message } from '../models/index.js';
 import { requireAdmin, sign } from '../middleware/auth.js';
+import { sendMail } from '../mail.js';
+import { getPool, AIUnavailableError } from '../ai/groqPool.js';
+import { summarizePrices, draftPost } from '../ai/features.js';
 import { todayIST, clean, cleanLong, cleanDeep, safeUrl, slugify, isDate } from '../util.js';
 
 export const uploadDir = path.resolve('uploads');
@@ -63,7 +66,7 @@ r.get('/summary', async (_q, res) => {
   res.json({
     today, yarn: await info('yarn'), cai: await info('cai'),
     posts: await Post.countDocuments({ kind: 'news' }), unread: await Message.countDocuments({ read: false }),
-    scheduled: await Post.countDocuments({ publishAt: { $gt: new Date() } }),
+    scheduled: await Post.countDocuments({ publishAt: { $gt: new Date() } }), pendingUsers: await User.countDocuments({ status: 'pending' }),
   });
 });
 
@@ -75,6 +78,12 @@ function cleanRows(rows) {
     .slice(0, 300)
     .map((x) => ({ item: clean(x.item, 120), unit: clean(x.unit, 30), note: clean(x.note, 200), rate: num(x.rate), prev: num(x.prev) }))
     .filter((x) => x.item);
+}
+/** Fire-and-forget: a failing AI never blocks or fails a price save. Only writes if the list was not edited meanwhile. */
+function summarizeInBackground(doc) {
+  summarizePrices(doc.type, doc.date, doc.rows.map((x) => x.toObject?.() ?? x))
+    .then((text) => text && PriceList.updateOne({ _id: doc._id, updatedAt: doc.updatedAt }, { $set: { aiSummary: text } }, { timestamps: false }))
+    .catch((e) => console.warn('[ai] price summary skipped:', e.message));
 }
 r.get('/prices/:type', async (req, res) => {
   const docs = await PriceList.find({ type: req.params.type }).sort({ date: -1 }).limit(60).select('date updatedAt rows').lean();
@@ -127,11 +136,18 @@ r.put('/prices/:type/:date', async (req, res) => {
     update.poster = safeUrl(req.body.poster);
     update.posterName = clean(req.body.posterName, 120);
   }
-  const doc = await PriceList.findOneAndUpdate({ type, date }, { $set: update }, { upsert: true, new: true, setDefaultsOnInsert: true });
+  // Rates changed, so any earlier AI summary is stale. A fresh one is generated in the background below.
+  const doc = await PriceList.findOneAndUpdate({ type, date }, { $set: update, $unset: { aiSummary: 1 } }, { upsert: true, new: true, setDefaultsOnInsert: true });
+  summarizeInBackground(doc);
+  // Rates are members-only, so the public news card never contains figures: its text is fixed on the server.
   let alertPost = null;
-  const al = req.body.alert;
-  if (al?.create && clean(al.headline, 90))
-    alertPost = await createPost({ kind: 'news', title: al.headline, summary: al.text, category: 'Price alert', linkUrl: `/prices/${type}` });
+  if (req.body.alert?.create) {
+    const nm = type === 'yarn' ? 'Yarn' : 'CAI';
+    alertPost = await createPost({
+      kind: 'news', title: `${nm} prices updated for ${new Date(`${date}T12:00:00+05:30`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', timeZone: 'Asia/Kolkata' })}`,
+      summary: `Today's ${type === 'yarn' ? 'yarn' : 'CAI'} prices are published. Sign in to view.`, category: 'Price alert', linkUrl: '/dashboard',
+    });
+  }
   res.json({ doc, alertPost });
 });
 r.delete('/prices/:type/:date', async (req, res) => {
@@ -234,6 +250,58 @@ crud('members', Member, { group: 'str', name: 'str', role: 'str', firm: 'str', p
 crud('gallery', GalleryItem, { imageUrl: 'url', alt: 'str', caption: 'str', category: 'str', order: 'num', w: 'num', h: 'num' }, { order: 1, createdAt: -1 });
 crud('awards', Award, { year: 'num', title: 'str', imageUrl: 'url', alt: 'str', order: 'num' }, { year: -1, order: 1 });
 crud('reference', ReferenceChart, { title: 'str', category: 'str', fileUrl: 'url', isPdf: 'bool', alt: 'str', date: 'str', table: 'table' }, { date: -1 });
+
+// ---------- member accounts
+const userRow = (u) => ({ id: u._id, name: u.name, email: u.email, phone: u.phone, millName: u.millName, city: u.city, status: u.status, lastLoginAt: u.lastLoginAt, createdAt: u.createdAt });
+r.get('/users', async (req, res) => {
+  const q = {};
+  if (['pending', 'approved', 'blocked'].includes(req.query.status)) q.status = req.query.status;
+  if (req.query.q) { const x = rxs(req.query.q); q.$or = [{ name: x }, { email: x }, { millName: x }, { phone: x }]; }
+  const [users, counts] = await Promise.all([
+    User.find(q).sort({ createdAt: -1 }).limit(300).lean(),
+    User.aggregate([{ $group: { _id: '$status', n: { $sum: 1 } } }]),
+  ]);
+  res.json({ users: users.map(userRow), counts: Object.fromEntries(counts.map((c) => [c._id, c.n])) });
+});
+const setStatus = (status, notify) => async (req, res) => {
+  const u = await User.findByIdAndUpdate(req.params.id, { $set: { status } }, { new: true });
+  if (!u) return res.status(404).json({ error: 'Member not found' });
+  if (notify && status === 'approved') sendMail({ to: u.email, subject: 'Your RTF account is approved', text: `Hello ${u.name},
+
+Your RTF member account is approved. You can now sign in to view daily yarn and CAI rates.` });
+  res.json(userRow(u));
+};
+r.put('/users/:id/approve', setStatus('approved', true));
+r.put('/users/:id/block', setStatus('blocked'));
+r.delete('/users/:id', async (req, res) => {
+  await User.findByIdAndDelete(req.params.id);
+  res.json({ ok: true });
+});
+// Sets a random temporary password and shows it once, so the office can pass it on (for example over WhatsApp).
+r.post('/users/:id/reset-password', async (req, res) => {
+  const u = await User.findById(req.params.id);
+  if (!u) return res.status(404).json({ error: 'Member not found' });
+  const temp = crypto.randomBytes(6).toString('base64url');
+  u.passwordHash = await bcrypt.hash(temp, 10);
+  u.resetTokenHash = undefined;
+  u.resetExpires = undefined;
+  await u.save();
+  res.json({ password: temp });
+});
+
+// ---------- AI
+r.get('/ai/status', (_q, res) => res.json(getPool().status()));
+r.post('/ai/draft', async (req, res) => {
+  const b = req.body || {};
+  const title = clean(b.title, 200), notes = cleanLong(b.notes, 2000);
+  if (!title && !notes) return res.status(422).json({ error: 'Add a headline or a few notes first.' });
+  try {
+    res.json(await draftPost({ kind: ['news', 'blog', 'event'].includes(b.kind) ? b.kind : 'news', title, notes }));
+  } catch (e) {
+    if (!(e instanceof AIUnavailableError)) console.error('[ai] draft failed', e);
+    res.status(503).json({ error: e instanceof AIUnavailableError ? e.message : 'Could not draft right now.' });
+  }
+});
 
 // ---------- settings & inbox
 r.put('/settings/:key', async (req, res) => {

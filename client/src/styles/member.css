@@ -1,0 +1,61 @@
+/* Member accounts: sign in / register, teaser, dashboard, "Ask RTF". Uses the shared design tokens only. */
+.blur { filter: blur(6px); user-select: none; pointer-events: none; }
+
+/* ---- auth pages */
+.auth-card { max-width: 460px; margin: 0 auto; padding: 32px 28px; display: grid; gap: 14px; }
+.auth-card .h2 { margin: 0; }
+.auth-ic { width: 44px; height: 44px; border-radius: var(--r-3); display: grid; place-items: center; background: var(--blue-wash); color: var(--blue-ink); }
+.auth-ic.sm { width: 32px; height: 32px; }
+.auth-form { display: grid; gap: 14px; }
+.auth-form .two { display: grid; gap: 14px; grid-template-columns: 1fr 1fr; }
+@media (max-width: 480px) { .auth-form .two { grid-template-columns: 1fr; } .auth-card { padding: 24px 18px; } }
+.auth-link { text-align: center; text-decoration: underline; text-underline-offset: 3px; }
+.auth-foot a { color: var(--blue-ink); font-weight: 600; }
+.auth-note { background: var(--blue-wash); color: var(--navy); padding: 8px 12px; border-radius: var(--r-2); }
+
+/* ---- public teaser (/prices/:type) and locked tiles */
+.teaser { position: relative; margin-top: 24px; display: grid; }
+.teaser-table { overflow: hidden; }
+.teaser-table .dt { filter: blur(3px); opacity: 0.7; }
+.teaser-cta {
+  position: absolute; inset: 0; margin: auto; width: min(480px, calc(100% - 32px)); height: fit-content;
+  padding: 28px; display: grid; gap: 12px; justify-items: start; box-shadow: var(--glass-shadow);
+}
+.teaser-cta .h2 { margin: 0; }
+@media (max-width: 640px) { .teaser-cta { position: static; margin: -40px auto 0; position: relative; } }
+.pb-locked .pb-row { opacity: 0.9; }
+.mk-lock { display: flex; gap: 8px; align-items: center; margin-top: 12px; padding: 10px 12px; font-size: 13px; color: var(--text-muted); background: var(--blue-wash); border-radius: var(--r-3); }
+
+/* ---- dashboard */
+.dash .h3 { font-size: 1.1rem; margin: 0; letter-spacing: var(--tracking); }
+.dash .stack-lg { display: grid; gap: 20px; }
+.dash-grid { display: grid; gap: 24px; grid-template-columns: minmax(0, 1fr) 360px; align-items: start; }
+.dash-grid aside { position: sticky; top: calc(var(--header-h-s) + 16px); }
+@media (max-width: 1000px) { .dash-grid { grid-template-columns: 1fr; } .dash-grid aside { position: static; } }
+.dash .pad { padding: 20px; }
+.ai-summary { display: grid; gap: 8px; border-left: 4px solid var(--blue-light); }
+.ai-summary p { margin: 0; }
+.profile-grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); align-items: start; }
+
+.chart-card { display: grid; gap: 12px; }
+.chart svg { display: block; touch-action: pan-y; }
+.chart-read { display: flex; align-items: baseline; gap: 10px; font-size: 1.4rem; }
+.chart-t { font-size: 11px; fill: var(--text-muted); }
+.chart-empty { padding: 24px 0; }
+
+/* ---- Ask RTF */
+.ask { display: grid; gap: 12px; }
+.ask-log { display: grid; gap: 10px; max-height: 340px; overflow-y: auto; padding-right: 4px; }
+.ask-ideas { display: grid; gap: 8px; }
+.ask-ideas .qchip { text-align: left; white-space: normal; height: auto; padding: 8px 12px; }
+.bubble { margin: 0; padding: 10px 14px; border-radius: var(--r-4); font-size: 14px; line-height: 1.5; max-width: 92%; white-space: pre-wrap; overflow-wrap: anywhere; }
+.bubble.user { justify-self: end; background: var(--blue); color: #fff; border-bottom-right-radius: var(--r-1); }
+.bubble.assistant { justify-self: start; background: var(--blue-wash); color: var(--text); border-bottom-left-radius: var(--r-1); }
+.bubble.err { background: #fde4e4; color: var(--down-ink); }
+.ask-form { display: flex; gap: 8px; }
+.ask-form input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border: 1px solid var(--line); border-radius: var(--r-3); font: inherit; background: #fff; color: var(--text); }
+.ask-form input:focus-visible { outline: none; box-shadow: var(--focus); }
+
+.foot-admin { opacity: 0.6; margin-left: 10px; }
+.foot-admin:hover { opacity: 1; }
+@media print { .ask, .dash-grid aside { display: none; } }
