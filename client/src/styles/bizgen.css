@@ -1,0 +1,119 @@
+/* Bizgen design layer (inspired by the Bizgen HTML theme): Inter Tight / DM Sans type, #3358D3 primary,
+   pill buttons with a sliding-fill hover, large tight headings, soft rounded cards, image zoom, outlined marquee.
+   Loaded LAST. It re-enables the hover motion that calm.css switched off. Remove the import in main.jsx to revert. */
+:root {
+  --font: 'Inter Tight Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-body: 'Inter Tight Variable', 'Inter', system-ui, sans-serif;
+  --font-accent: 'DM Sans Variable', 'Inter', system-ui, sans-serif;
+  --bz-primary: #3358d3;
+  --bz-primary-dark: #1d1d1e;
+  --bz-heading: #1d1d1e;
+  --bz-body: #5d5d62; /* Bizgen uses #868689; darkened to keep AA contrast on white */
+  --bz-wash: #ebefff;
+  --blue: #3358d3;
+  --blue-hover: #2646b3;
+  --blue-ink: #3358d3;
+  --blue-wash: #ebefff;
+  --btn-from: #3358d3;
+  --btn-to: #3358d3;
+  --text: #1d1d1e;
+  --text-muted: #5d5d62;
+  --line: #e4e4e8;
+  --bg-soft: #f5f7f8;
+  --r-1: 8px;
+  --r-2: 999px; /* pills */
+  --r-3: 16px;
+  --r-4: 24px;
+  --tracking: -0.03em;
+  --h-hero: clamp(2.8rem, 6.4vw, 5.6rem);
+  --h-1: clamp(2.2rem, 4.4vw, 3.75rem);
+  --h-2: clamp(1.4rem, 2.2vw, 1.9rem);
+  --section-y: 120px;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-hover: 400ms;
+  --container: 1280px;
+}
+@media (max-width: 720px) { :root { --section-y: 64px; } }
+
+body { font-family: var(--font-body); font-size: 17px; line-height: 1.7; color: var(--bz-body); letter-spacing: -0.005em; }
+h1, h2, h3, h4 { font-family: var(--font); color: var(--bz-heading); font-weight: 600; letter-spacing: -0.035em; line-height: 1.08; }
+h3 { font-size: var(--h-2); letter-spacing: -0.025em; line-height: 1.2; }
+.hero2 h1 { font-size: var(--h-hero); font-weight: 600; letter-spacing: -0.045em; line-height: 1; }
+.hero2 h1 .l1 { color: var(--bz-primary); }
+.hero2 h1 .l2 { color: var(--bz-heading); }
+.section-head h2 { font-size: var(--h-1); font-weight: 600; letter-spacing: -0.04em; line-height: 1.04; }
+.section-head p { font-size: 1.1875rem; line-height: 1.65; color: var(--bz-body); }
+.section-head { max-width: 760px; }
+
+/* eyebrow: small pill with a leading dot */
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px; padding: 7px 16px 7px 14px; border-radius: 999px; background: var(--bz-wash);
+  font-family: var(--font-accent); font-size: 0.8125rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--bz-primary);
+}
+.eyebrow::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: var(--bz-primary); box-shadow: 0 0 0 4px rgba(51, 88, 211, 0.18); }
+
+/* heading line masks made by SplitText */
+.bz-line { padding-bottom: 0.12em; margin-bottom: -0.12em; }
+
+/* ---------- Buttons: pill + sliding dark fill ---------- */
+html .btn {
+  --h: 54px; overflow: hidden; isolation: isolate; padding: 0 30px; font-family: var(--font-accent); font-weight: 600; font-size: 1rem; letter-spacing: -0.01em;
+  transition: color 0.4s var(--ease), border-color 0.4s var(--ease), background 0.4s var(--ease), box-shadow 0.4s var(--ease);
+}
+html .btn-sm { --h: 42px; padding: 0 20px; font-size: 0.9rem; }
+html .btn-lg { --h: 60px; padding: 0 36px; font-size: 1.0625rem; }
+.btn::before {
+  content: ''; position: absolute; inset: -1px; z-index: -1; border-radius: inherit; background: var(--bz-primary-dark);
+  transform: translateY(101%); transition: transform 0.5s var(--ease);
+}
+.btn:hover::before { transform: translateY(0); }
+html .btn-primary { background: var(--bz-primary); box-shadow: none; color: #fff; }
+html .btn-primary:hover { transform: none !important; box-shadow: 0 18px 40px -14px rgba(51, 88, 211, 0.6); }
+html .btn-glass { background: transparent; border: 1.5px solid var(--bz-heading); color: var(--bz-heading); }
+html .btn-glass::before { background: var(--bz-heading); }
+html .btn-glass:hover { color: #fff; background: transparent; box-shadow: none; transform: none !important; }
+html .btn-light::before { background: var(--bz-primary); }
+html .btn-light:hover { color: #fff; box-shadow: none; transform: none !important; }
+html .btn-ghost::before { background: var(--bz-wash); }
+html .btn-ghost:hover { color: var(--bz-primary); background: transparent; }
+html .btn:hover .arrow { transform: translateX(6px) !important; }
+.textlink { font-family: var(--font-accent); font-weight: 600; color: var(--bz-heading); background: linear-gradient(currentColor, currentColor) 0 100% / 100% 1.5px no-repeat; padding-bottom: 3px; transition: background-size 0.5s var(--ease), color 0.3s; }
+.textlink:hover { color: var(--bz-primary); background-size: 0 1.5px; background-position: 100% 100%; }
+
+/* ---------- Cards: soft, big radius, lift + shadow ---------- */
+.glass, .glass-dark { border-radius: var(--r-4); }
+.glass { border-color: var(--line); box-shadow: 0 1px 0 rgba(29, 29, 30, 0.02); }
+html .lift { border-radius: var(--r-4); transition: transform 0.6s var(--ease), box-shadow 0.6s var(--ease), border-color 0.4s; will-change: transform; }
+html .lift:hover { transform: translateY(-10px) !important; border-color: transparent; box-shadow: 0 34px 70px -28px rgba(29, 29, 30, 0.28); }
+html .gp img, html .news-card .news-img img, html .post-card .post-img img { transition: transform 1.2s var(--ease); }
+html .gp:hover img, html .news-card:hover .news-img img, html .post-card:hover .post-img img { transform: scale(1.08) !important; }
+.news-img, .post-img, .gp { overflow: hidden; border-radius: var(--r-3); }
+.pill { font-family: var(--font-accent); }
+
+/* ---------- Marquee: huge outlined words ---------- */
+.marquee-track { animation-timing-function: linear; }
+.bz-marquee { font-family: var(--font); font-size: clamp(3rem, 8vw, 7rem); font-weight: 700; letter-spacing: -0.04em; line-height: 1.1; white-space: nowrap; color: transparent; -webkit-text-stroke: 1.5px var(--bz-heading); }
+.bz-marquee span { padding-inline: 0.4em; }
+.bz-marquee span:nth-child(even) { color: var(--bz-heading); -webkit-text-stroke: 0; }
+
+/* ---------- Inputs ---------- */
+.field input, .field textarea, .field select { border-radius: var(--r-3); border-color: var(--line); background: #fff; font-family: var(--font-body); }
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--bz-primary); box-shadow: 0 0 0 4px rgba(51, 88, 211, 0.14); }
+.switch input:checked + .track { background: var(--bz-primary); }
+:focus-visible { outline-color: var(--bz-primary); }
+
+/* ---------- Header / nav ---------- */
+.secnav-tabs button { font-family: var(--font-accent); }
+.secnav-tabs button.on::after { background: var(--bz-primary); }
+.secnav-tabs button:hover { color: var(--bz-primary); }
+
+/* Smooth scroll (Lenis) */
+html.lenis, html.lenis body { height: auto; }
+html.lenis { scroll-behavior: auto !important; }
+.lenis.lenis-stopped { overflow: hidden; }
+
+@media (prefers-reduced-motion: reduce) {
+  html .lift:hover { transform: none !important; }
+  .btn::before { transition: none; }
+}
+html.lite .btn::before { transition: none; }

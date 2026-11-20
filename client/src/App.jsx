@@ -5,6 +5,7 @@ import { Splash, TopLoader, PageTransition, ToastProvider, Skeleton } from './ui
 import { Announce, Header, Footer, ErrorCard } from './components/Shell.jsx';
 import { SettingsProvider, useSettings } from './lib/hooks.jsx';
 import { UserAuthProvider, RequireUser } from './lib/userAuth.jsx';
+import { BizgenMotion } from './ui/Bizgen.jsx';
 import Home from './pages/Home.jsx';
 
 const Prices = lazy(() => import('./pages/Prices.jsx'));
@@ -84,6 +85,7 @@ export default function App() {
     <LazyMotion features={domAnimation}>
       <ToastProvider>
         <TopLoader />
+        <BizgenMotion />
         <SettingsProvider>
           <UserAuthProvider>
             {admin ? <Suspense fallback={<Fallback />}><Admin /></Suspense> : <Public />}
