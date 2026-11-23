@@ -122,13 +122,17 @@ export function Header() {
 }
 
 /** Google Map of the office. It loads only after the visitor allows third-party content. */
-function MapEmbed({ address }) {
+function MapEmbed({ address, mapUrl }) {
   const consent = useConsent();
-  const q = encodeURIComponent((address || 'Coimbatore, Tamil Nadu').replace(/\s*\n\s*/g, ', '));
+  // Google finds the place more reliably without the door number and "(PO)": keep village, area, city and PIN
+  const clean = (address || 'Coimbatore, Tamil Nadu').replace(/\(PO\)/gi, '').replace(/(^|\s)\d+\/\d+,?/g, ' ').replace(/\s*[\r\n]+\s*/g, ', ').replace(/\s+/g, ' ').replace(/\s+,/g, ',').replace(/,\s*,/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').replace(/Coimbatore-\s*/i, 'Coimbatore ').replace(/,?\s*Tamil Nadu, India\.?/i, ', Tamil Nadu');
+  const q = encodeURIComponent(clean);
+  // an embed link pasted in Admin (Contact > map URL) wins, so the office can pin the exact spot
+  const embed = mapUrl && /\/maps\/embed|output=embed/.test(mapUrl) ? mapUrl : `https://www.google.com/maps?q=${q}&z=16&output=embed`;
   return (
     <div className="foot-map">
       {consent.thirdParty ? (
-        <iframe title="Map showing the RTF office" src={`https://www.google.com/maps?q=${q}&output=embed`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+        <iframe title="Map showing the RTF office" src={embed} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
       ) : (
         <div className="foot-map-off">
           <Icon name="loc" size={26} />
@@ -179,7 +183,7 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="container foot-mapband"><MapEmbed address={c.address} /></div>
+      <div className="container foot-mapband"><MapEmbed address={c.address} mapUrl={c.mapUrl} /></div>
       <div className="container foot-bar">
         <span>© {new Date().getFullYear()} {s.site?.name}. All rights reserved.</span>
         <nav className="foot-legal" aria-label="Legal">

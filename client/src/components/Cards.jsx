@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon, Pill, GlassCard, Button, useToast } from '../ui/index.js';
 import { useSettings, catColor } from '../lib/hooks.jsx';
@@ -21,7 +20,6 @@ export const postUrl = (p) => `/${PATH[p.kind || 'news']}/${p.slug}`;
 export function NewsCard({ post, preview = false, index = 0 }) {
   const { s } = useSettings();
   const toast = useToast();
-  const [zoom, setZoom] = useState(false);
   const url = preview ? window.location.origin : window.location.origin + postUrl(post);
   const copy = async () => { try { await navigator.clipboard.writeText(url); toast.success('Link copied'); } catch { toast.error('Could not copy'); } };
   const wa = waLink(`${post.title}\n${post.summary || ''}\n${url}`);

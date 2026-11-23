@@ -1,3 +1,4 @@
+/* global process, fetch, console */
 // Saves a copy of the public API answers into public/static-data so the site still shows its content
 // when it is hosted without the Node server (for example on Vercel). Run with the API up:
 //   node scripts-snapshot.mjs http://localhost:5173

@@ -76,7 +76,6 @@ export function TopLoader() {
 /** Route transition: short fade + 12px slide. children is (location) => <Routes location={location}>… */
 export function PageTransition({ children }) {
   const loc = useLocation();
-  const rm = useReducedMotion();
   useEffect(() => { progress.inc(); const t = setTimeout(() => progress.dec(), 350); return () => { clearTimeout(t); }; }, [loc.pathname]);
   return (
     <AnimatePresence mode="wait" initial={false} onExitComplete={() => window.scrollTo(0, 0)}>
