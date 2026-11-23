@@ -3,6 +3,7 @@ import { m, AnimatePresence, useReducedMotion, useInView } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { progress } from '../lib/api.js';
 import { useSettings } from '../lib/hooks.jsx';
+import { hasConsent } from '../lib/consent.jsx';
 
 export const EASE = [0.22, 1, 0.36, 1];
 const STATIC_NUMBERS = true; // numbers show their final value (no count-up); set to false to bring the count-up back
@@ -37,7 +38,7 @@ export function Splash({ ready }) {
   const rm = useReducedMotion();
   const [show, setShow] = useState(() => { try { return !sessionStorage.getItem('rtf_splash'); } catch { return true; } });
   const t0 = useRef(performance.now());
-  const hide = () => { try { sessionStorage.setItem('rtf_splash', '1'); } catch { /* storage blocked */ } setShow(false); };
+  const hide = () => { try { if (hasConsent('preferences')) sessionStorage.setItem('rtf_splash', '1'); } catch { /* storage blocked */ } setShow(false); };
   useEffect(() => { if (!show) return; const t = setTimeout(hide, 1200); return () => clearTimeout(t); }, [show]); // hard cap
   useEffect(() => {
     if (!show || !ready) return;

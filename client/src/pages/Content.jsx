@@ -1,17 +1,24 @@
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { Button, EmptyState, GlassCard, Icon, Input, Lightbox, Pill, Reveal, Select, Skeleton, Tabs, Textarea, useToast, DataTable } from '../ui/index.js';
-import { Counters, CtaBand } from './Home.jsx';
+import { Counters, CtaBand, TeamSection } from './Home.jsx';
 import { CopyButton } from '../components/Cards.jsx';
+import Spot from '../components/Spot.jsx';
 import { ErrorCard } from '../components/Shell.jsx';
 import { api, useFetch } from '../lib/api.js';
 import { useSettings, useSeo } from '../lib/hooks.jsx';
 import { fmtDate, openNow, to12h, waLink } from '../lib/format.js';
 
+const HEAD_PHOTO = { 'About RTF': 'mill-hall-green', Gallery: 'cotton-team', Awards: 'mill-supervisors', Reference: 'quality-lab', Contact: 'export-container', Members: 'mill-spinning-frames' };
 const Head = ({ eyebrow, title, lead }) => (
-  <Reveal className="page-head"><span className="eyebrow">{eyebrow}</span><h1 className="h1">{title}</h1>{lead && <p className="muted lead-sm">{lead}</p>}</Reveal>
+  <header className="page-hero">
+    <img src={`/photos/${HEAD_PHOTO[eyebrow] || 'mill-corridor'}.webp`} alt="" aria-hidden="true" loading="eager" />
+    <div className="page-hero-in"><span className="eyebrow">{eyebrow}</span><h1 className="h1">{title}</h1>{lead && <p className="lead-sm">{lead}</p>}</div>
+  </header>
 );
 
+const STEP_IMG = ['sorting-denim', 'shredding-line', 'cones-sage', 'design-swatches'];
+const WHO_IMG = ['mill-spinning-frames', 'mill-corridor', 'couple-yarn', 'cones-concrete'];
 const pair = (line) => { const i = line.indexOf('|'); return i < 0 ? [line.trim(), ''] : [line.slice(0, i).trim(), line.slice(i + 1).trim()]; };
 
 /** Steps, audience and FAQ: all text comes from Settings > About page (one "Title | text" per line). */
@@ -24,7 +31,7 @@ function AboutMore({ a }) {
         <section className="block">
           <h2 className="h2">How recycling works</h2>
           <ol className="steps">
-            {steps.map(([t, d], i) => <li key={t} className="step"><span className="step-n">{i + 1}</span><h3>{t}</h3><p className="muted">{d}</p></li>)}
+            {steps.map(([t, d], i) => <li key={t} className="step"><div className="card-ph"><img src={`/photos/${STEP_IMG[i % STEP_IMG.length]}.webp`} alt="" loading="lazy" /></div><div className="card-body"><div className="spot-row"><Spot name={['waste', 'recycle', 'yarn', 'spool'][i % 4]} /><h3>{t}</h3></div><p className="muted">{d}</p></div></li>)}
           </ol>
         </section>)}
       {who.length > 0 && (
@@ -32,7 +39,7 @@ function AboutMore({ a }) {
           <h2 className="h2">Who RTF serves</h2>
           <div className="who">
             {who.map(([t, d], i) => (
-              <div key={t} className="who-card"><span className="who-ic"><Icon name={['users', 'community', 'award', 'free'][i % 4]} size={22} /></span><h3>{t}</h3><p className="muted">{d}</p></div>))}
+              <div key={t} className="who-card"><div className="card-ph"><img src={`/photos/${WHO_IMG[i % WHO_IMG.length]}.webp`} alt="" loading="lazy" /></div><div className="card-body"><div className="spot-row"><Spot name={['mill', 'powerloom', 'handloom', 'spool'][i % 4]} /><h3>{t}</h3></div><p className="muted">{d}</p></div></div>))}
           </div>
         </section>)}
       {faq.length > 0 && (
@@ -55,6 +62,13 @@ export function About() {
   useSeo('About RTF', s.about?.intro?.[0]);
   const a = s.about || {};
   const photos = useFetch('/gallery?category=about');
+  const { hash } = useLocation();
+  // /about#team lands on the committee section once the page has settled
+  useEffect(() => {
+    if (!hash) return undefined;
+    const t = setTimeout(() => document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 700);
+    return () => clearTimeout(t);
+  }, [hash]);
   return (
     <div className="container page-pad section">
       <Head eyebrow="About RTF" title={a.heading} />
@@ -67,9 +81,10 @@ export function About() {
       </div>
       <Counters />
       {a.products?.length > 0 && (
-        <Reveal className="block"><h2 className="h2">Made from recycled yarn</h2>
-          <ul className="chips" style={{ marginTop: 16 }}>{a.products.map((p) => <li key={p} className="glass chip"><b>{p}</b></li>)}</ul></Reveal>)}
+        <Reveal className="block"><div className="prod-split"><div className="card-ph prod-ph"><img src="/photos/garment-rail.webp" alt="Garments made from recycled yarn" loading="lazy" /></div><div><h2 className="h2">Made from recycled yarn</h2>
+          <ul className="chips" style={{ marginTop: 16 }}>{a.products.map((p) => <li key={p} className="glass chip"><b>{p}</b></li>)}</ul></div></div></Reveal>)}
       <AboutMore a={a} />
+      <TeamSection />
       {photos.data?.length > 0 && <div className="about-photos">{photos.data.slice(0, 3).map((g) => <Reveal key={g._id}><img className="glass" src={g.imageUrl} alt={g.alt} loading="lazy" /></Reveal>)}</div>}
       <Reveal className="block">
         <GlassCard className="join">

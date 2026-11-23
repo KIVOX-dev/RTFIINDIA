@@ -1,22 +1,51 @@
 import { useState } from 'react';
 import { Link, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
-import { Button, GlassCard, Icon, Input, Reveal } from '../ui/index.js';
+import { Button, Icon, Input } from '../ui/index.js';
 import { userAuthApi } from '../lib/api.js';
-import { useSeo } from '../lib/hooks.jsx';
+import { useSeo, useSettings } from '../lib/hooks.jsx';
 import { useUser } from '../lib/userAuth.jsx';
 
+const SIDE_POINTS = [
+  'Daily Yarn Price List and CAI spot rates in your dashboard',
+  'Free membership, and all member benefits are free',
+  'The active RTF WhatsApp group for notices and rates',
+];
+
+/** Split layout: photograph and member benefits on the left, the form on the right. */
 function Shell({ title, lead, children, foot }) {
+  const { s } = useSettings();
+  const logo = s.site?.logoUrl;
+  const { pathname } = useLocation();
+  const tab = pathname.startsWith('/register') ? 'register' : pathname.startsWith('/login') ? 'login' : null;
   return (
     <div className="container page-pad section">
-      <Reveal>
-        <GlassCard className="auth-card">
+      <div className="auth-wrap">
+        <aside className="auth-side">
+          <img src="/photos/mill-hall-green.webp" alt="" aria-hidden="true" />
+          <div className="auth-side-shade" aria-hidden="true" />
+          <div className="auth-side-in">
+            <Link to="/" className="auth-brand">{logo && <img src={logo} alt="" />}<span>{s.site?.name || 'Recycle Textile Federation'}</span></Link>
+            <div className="auth-side-copy">
+              <p className="auth-kicker">Member area</p>
+              <h2>Rates, news and the RTF community, in one place.</h2>
+              <ul>{SIDE_POINTS.map((t) => <li key={t}>{t}</li>)}</ul>
+            </div>
+          </div>
+        </aside>
+        <section className="auth-main">
+          {tab && (
+            <div className="auth-tabs" role="tablist" aria-label="Member account">
+              <Link to="/login" role="tab" aria-selected={tab === 'login'} className={tab === 'login' ? 'on' : ''}>Login</Link>
+              <Link to="/register" role="tab" aria-selected={tab === 'register'} className={tab === 'register' ? 'on' : ''}>Sign up</Link>
+            </div>
+          )}
           <span className="auth-ic"><Icon name="lock" size={22} /></span>
           <h1 className="h2">{title}</h1>
-          {lead && <p className="muted">{lead}</p>}
+          {lead && <p className="auth-lead">{lead}</p>}
           {children}
           {foot && <p className="auth-foot muted small">{foot}</p>}
-        </GlassCard>
-      </Reveal>
+        </section>
+      </div>
     </div>
   );
 }

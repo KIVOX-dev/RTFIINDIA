@@ -4,6 +4,17 @@ import { Icon, Pill, GlassCard, Button, useToast } from '../ui/index.js';
 import { useSettings, catColor } from '../lib/hooks.jsx';
 import { isNew, relTime, fmtDate, waLink } from '../lib/format.js';
 
+/** A photograph that fits the post's category, used when a post has no image of its own. */
+function topicPhoto(cat = '') {
+  const t = cat.toLowerCase();
+  if (t.includes('market') || t.includes('price') || t.includes('rate')) return 'cones-white';
+  if (t.includes('meeting') || t.includes('notice') || t.includes('committee')) return 'mill-supervisors';
+  if (t.includes('cotton') || t.includes('raw') || t.includes('material')) return 'cotton-aerial';
+  if (t.includes('event') || t.includes('fair') || t.includes('expo')) return 'export-container';
+  if (t.includes('award')) return 'couple-yarn';
+  if (t.includes('policy') || t.includes('govern')) return 'world-map';
+  return 'mill-hall-green';
+}
 const PATH = { news: 'news', blog: 'blog', event: 'events' };
 export const postUrl = (p) => `/${PATH[p.kind || 'news']}/${p.slug}`;
 
@@ -22,7 +33,7 @@ export function NewsCard({ post, preview = false, index = 0 }) {
           <img src={post.imageUrl} alt={post.imageAlt || ''} loading="lazy" width="640" height="360" />
         </div>
       ) : !preview && (
-        <div className="news-img ph" style={{ background: `color-mix(in srgb, ${catColor(s, post.category)} 18%, white)` }} aria-hidden="true"><Icon name="news" size={30} /></div>
+        <div className="news-img topic"><img src={`/photos/${topicPhoto(post.category)}.webp`} alt="" loading="lazy" width="640" height="360" /></div>
       )}
       <div className="news-body">
         <div className="row wrap" style={{ gap: 8 }}>

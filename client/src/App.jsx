@@ -5,6 +5,8 @@ import { Splash, TopLoader, PageTransition, ToastProvider, Skeleton } from './ui
 import { Announce, Header, Footer, ErrorCard } from './components/Shell.jsx';
 import { SettingsProvider, useSettings } from './lib/hooks.jsx';
 import { UserAuthProvider, RequireUser } from './lib/userAuth.jsx';
+import { ConsentProvider } from './lib/consent.jsx';
+import CookieBanner from './components/CookieBanner.jsx';
 import { BizgenMotion } from './ui/Bizgen.jsx';
 import Home from './pages/Home.jsx';
 
@@ -14,6 +16,8 @@ const Content = lazy(() => import('./pages/Content.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 const authPick = (k) => lazy(() => import('./pages/Auth.jsx').then((m) => ({ default: m[k] })));
 const Login = authPick('Login'), Register = authPick('Register'), Forgot = authPick('Forgot'), Reset = authPick('Reset');
+const legalPick = (k) => lazy(() => import('./pages/Legal.jsx').then((m) => ({ default: m[k] })));
+const Terms = legalPick('Terms'), Privacy = legalPick('Privacy'), Cookies = legalPick('Cookies');
 const Design = lazy(() => import('./pages/Design.jsx'));
 const Admin = lazy(() => import('./admin/Admin.jsx'));
 const pick = (k) => lazy(() => import('./pages/Content.jsx').then((m) => ({ default: m[k] })));
@@ -65,6 +69,9 @@ function Public() {
                   <Route path="/gallery" element={<Gallery />} />
                   <Route path="/members/grey-yarn" element={<Contact grey />} />
                   <Route path="/contact" element={<Contact />} />
+                  <Route path="/terms" element={<Terms />} />
+                  <Route path="/privacy" element={<Privacy />} />
+                  <Route path="/cookies" element={<Cookies />} />
                   {import.meta.env.DEV && <Route path="/design" element={<Design />} />}
                   <Route path="*" element={<NotFound />} />
                 </Routes>
@@ -74,6 +81,7 @@ function Public() {
         )}
       </main>
       <Footer />
+      <CookieBanner />
     </>
   );
 }
@@ -87,9 +95,11 @@ export default function App() {
         <TopLoader />
         <BizgenMotion />
         <SettingsProvider>
+          <ConsentProvider>
           <UserAuthProvider>
             {admin ? <Suspense fallback={<Fallback />}><Admin /></Suspense> : <Public />}
           </UserAuthProvider>
+          </ConsentProvider>
         </SettingsProvider>
       </ToastProvider>
     </LazyMotion>

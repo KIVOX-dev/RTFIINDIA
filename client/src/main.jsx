@@ -23,6 +23,7 @@ import './styles/about.css';
 import './styles/cotton.css';
 import './styles/member.css';
 import './styles/bizgen.css';
+import './styles/structure.css';
 import App from './App.jsx';
 
 // Low-end devices get solid cards and no blob animation (backdrop-filter is the main cost on cheap Android phones)

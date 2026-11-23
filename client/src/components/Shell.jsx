@@ -4,6 +4,7 @@ import { m, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Icon, Logo, Button, Dropdown, EASE } from '../ui/index.js';
 import { useSettings, usePriceMeta } from '../lib/hooks.jsx';
 import { useUser } from '../lib/userAuth.jsx';
+import { useConsent } from '../lib/consent.jsx';
 import { fmtDate } from '../lib/format.js';
 
 const SOCIAL = [['instagram', 'Instagram'], ['linkedin', 'LinkedIn'], ['youtube', 'YouTube'], ['facebook', 'Facebook']];
@@ -120,13 +121,35 @@ export function Header() {
   );
 }
 
+/** Google Map of the office. It loads only after the visitor allows third-party content. */
+function MapEmbed({ address }) {
+  const consent = useConsent();
+  const q = encodeURIComponent((address || 'Coimbatore, Tamil Nadu').replace(/\s*\n\s*/g, ', '));
+  return (
+    <div className="foot-map">
+      {consent.thirdParty ? (
+        <iframe title="Map showing the RTF office" src={`https://www.google.com/maps?q=${q}&output=embed`} loading="lazy" referrerPolicy="no-referrer-when-downgrade" allowFullScreen />
+      ) : (
+        <div className="foot-map-off">
+          <Icon name="loc" size={26} />
+          <p>The map is provided by Google, which may set cookies. Load it only if you are happy with that.</p>
+          <button type="button" className="foot-map-btn" onClick={consent.allowThirdParty}>Load Google Map</button>
+        </div>
+      )}
+      <a className="foot-dir" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noopener noreferrer">Get directions <Icon name="arrow" size={16} className="arrow" /></a>
+    </div>
+  );
+}
+
 export function Footer() {
   const { s } = useSettings();
+  const consent = useConsent();
   const c = s.contact || {}, soc = s.social || {};
   return (
     <footer className="site-footer">
+      <img className="foot-bg" src="/photos/cotton-aerial.webp" alt="" aria-hidden="true" loading="lazy" />
       <div className="container foot-grid">
-        <div>
+        <div className="foot-brand">
           <Logo size={52} light />
           <p className="foot-about">{s.hero?.tagline}</p>
           <div className="socials" aria-label="Social links">
@@ -139,6 +162,15 @@ export function Footer() {
           <ul>{[['/', 'Home'], ['/about', 'About Us'], ['/prices/yarn', 'Yarn Price List'], ['/prices/cai', 'CAI Spot Rate'], ['/gallery', 'Gallery'], ['/contact', 'Contact Us']].map(([to, t]) => <li key={to}><Link to={to}>{t}</Link></li>)}</ul>
         </div>
         <div>
+          <h4>Legal</h4>
+          <ul>
+            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/cookies">Cookie Policy</Link></li>
+            <li><button type="button" className="foot-link-btn" onClick={consent.openSettings}>Cookie settings</button></li>
+          </ul>
+        </div>
+        <div>
           <h4>Contact</h4>
           <ul className="foot-contact">
             <li style={{ whiteSpace: 'pre-line' }}>{c.address || 'Coimbatore, Tamil Nadu'}</li>
@@ -147,8 +179,12 @@ export function Footer() {
           </ul>
         </div>
       </div>
+      <div className="container foot-mapband"><MapEmbed address={c.address} /></div>
       <div className="container foot-bar">
         <span>© {new Date().getFullYear()} {s.site?.name}. All rights reserved.</span>
+        <nav className="foot-legal" aria-label="Legal">
+          <Link to="/terms">Terms</Link><Link to="/privacy">Privacy</Link><Link to="/cookies">Cookies</Link>
+        </nav>
         <span>{s.footer?.credit} <Link to="/admin" className="foot-admin">Admin</Link></span>
       </div>
     </footer>
