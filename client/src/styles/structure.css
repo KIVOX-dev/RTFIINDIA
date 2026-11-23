@@ -664,3 +664,43 @@ main .lg-contact h2 { color: #fff; }
 /* hero: outlined button reads white on the photograph */
 html .bc-hero .btn-glass, html .bc-hero .on-dark { color: #fff; border: 1.5px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.12); backdrop-filter: blur(6px); }
 html .bc-hero .btn-glass:hover, html .bc-hero .on-dark:hover { background: #fff; color: #0a1c3d; }
+
+/* ---- real-phone fixes (360-420px): nothing wider than the screen, compact member area ---- */
+.bc-join-grid > *, .bc-join-copy, .bc-phones { min-width: 0; }
+@media (max-width: 700px) {
+  .bc-join .container { overflow: hidden; }
+  .bc-phones { height: auto; justify-content: center; padding-bottom: 8px; }
+  .bc-phone { width: min(172px, 44vw); height: min(364px, 94vw); border-radius: 28px; padding: 7px; }
+  .bc-phone.a { margin-right: -14px; } .bc-phone.b { margin-left: -14px; }
+  .bc-screen { padding: 30px 10px 10px; font-size: 9.5px; border-radius: 22px; gap: 6px; }
+  .bc-notch { width: 54px; height: 15px; margin-left: -27px; top: 10px; }
+  .ph-logo-img.big { width: 40px; height: 40px; }
+  .bc-screen.login b { font-size: 12.5px; }
+  .ph-field, .ph-btn { padding: 8px 9px; }
+  .ph-card-n, .ph-card b.val { font-size: 11.5px; }
+  .ph-hero b { font-size: 11px; }
+  .bc-join-copy p:not(.bc-eyebrow) { font-size: 1rem; }
+
+  .auth-wrap { margin-inline: -4px; }
+  .auth-side-in { padding: 16px 18px; flex-direction: row; align-items: center; justify-content: flex-start; }
+  .auth-side-copy { display: none; }
+  .auth-brand img { width: 38px; height: 38px; }
+  .auth-brand span { font-size: 0.98rem; }
+  .auth-main { padding: 22px 18px 26px; gap: 12px; }
+  .auth-main .auth-ic { display: none; }
+  .auth-tabs { width: 100%; }
+  main .auth-main h1 { font-size: 1.85rem; }
+  .auth-main .btn, .auth-main input { min-height: 50px; }
+}
+
+@media (max-width: 560px) {
+  .ck { padding: 14px 16px calc(14px + env(safe-area-inset-bottom)); }
+  .ck-head { margin-bottom: 4px; } .ck-ic { width: 30px; height: 30px; }
+  .ck h2 { font-size: 1rem; }
+  .ck-text { font-size: 0.82rem; line-height: 1.45; margin-bottom: 10px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .ck-list ~ .ck-actions, .ck-actions { gap: 8px; }
+  .ck-btn { flex: 1 1 calc(50% - 4px); min-height: 44px; padding: 9px 10px; font-size: 0.88rem; }
+  .ck-btn.ghost { flex: 1 1 100%; min-height: 40px; }
+  .lg-toc ol a { padding: 12px; min-height: 44px; align-items: center; }
+  .foot-dir, .foot-legal a, .site-footer li a { min-height: 44px; display: inline-flex; align-items: center; }
+}
