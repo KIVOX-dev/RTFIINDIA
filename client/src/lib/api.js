@@ -23,6 +23,16 @@ export const userToken = {
   clear: () => { try { localStorage.removeItem(USER_TOKEN); } catch { /* storage blocked */ } },
 };
 
+/** Public GET answers saved in /static-data. Used only when the API server cannot be reached (static hosting). */
+async function snapshot(url) {
+  try {
+    const key = url.replace(/^\/api/, '').replace(/[^a-z0-9]+/gi, '_');
+    const res = await fetch(`/static-data/${key}.json`);
+    const type = res.headers.get('content-type') || '';
+    return res.ok && type.includes('json') ? await res.json() : undefined;
+  } catch { return undefined; }
+}
+
 async function request(method, url, body, { admin = false, member = false, silent = false } = {}) {
   const headers = {};
   let payload;
@@ -32,7 +42,17 @@ async function request(method, url, body, { admin = false, member = false, silen
   if (member && userToken.get()) headers.authorization = `Bearer ${userToken.get()}`;
   if (!silent) progress.inc();
   try {
-    const res = await fetch(url, { method, headers, body: payload });
+    const canFallback = method === 'GET' && !admin && !member;
+    let res;
+    try { res = await fetch(url, { method, headers, body: payload }); } catch (e) {
+      const snap = canFallback ? await snapshot(url) : undefined;
+      if (snap !== undefined) return snap;
+      throw e;
+    }
+    if (canFallback && (!res.ok || !(res.headers.get('content-type') || '').includes('json'))) {
+      const snap = await snapshot(url);
+      if (snap !== undefined) return snap;
+    }
     const data = res.status === 204 ? null : await res.json().catch(() => ({}));
     if (!res.ok) {
       if (res.status === 401 && admin) { auth.clear(); window.dispatchEvent(new Event('rtf-auth-lost')); }
