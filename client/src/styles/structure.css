@@ -660,3 +660,7 @@ main .lg-contact h2 { color: #fff; }
 .socials a:hover { background-color: inherit; }
 .socials > :nth-child(1):hover { background: linear-gradient(45deg, #feda75, #fa7e1e 28%, #d62976 55%, #962fbf 78%, #4f5bd5); }
 .socials > :nth-child(2):hover { background: #0a66c2; } .socials > :nth-child(3):hover { background: #ff0000; } .socials > :nth-child(4):hover { background: #1877f2; }
+
+/* hero: outlined button reads white on the photograph */
+html .bc-hero .btn-glass, html .bc-hero .on-dark { color: #fff; border: 1.5px solid rgba(255,255,255,0.85); background: rgba(255,255,255,0.12); backdrop-filter: blur(6px); }
+html .bc-hero .btn-glass:hover, html .bc-hero .on-dark:hover { background: #fff; color: #0a1c3d; }

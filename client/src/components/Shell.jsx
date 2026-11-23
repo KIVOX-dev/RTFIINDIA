@@ -122,13 +122,14 @@ export function Header() {
 }
 
 /** Google Map of the office. It loads only after the visitor allows third-party content. */
-function MapEmbed({ address, mapUrl }) {
+const OFFICE_PLACE = '6, Vellanaipatti Main Rd, Karuparayanpalayam, Coimbatore, Tamil Nadu 641048'; // the RTF office pin
+const OFFICE_LINK = 'https://maps.app.goo.gl/ZAkcqxrGwN9FEnpE7';
+function MapEmbed({ mapUrl }) {
   const consent = useConsent();
-  // Google finds the place more reliably without the door number and "(PO)": keep village, area, city and PIN
-  const clean = (address || 'Coimbatore, Tamil Nadu').replace(/\(PO\)/gi, '').replace(/(^|\s)\d+\/\d+,?/g, ' ').replace(/\s*[\r\n]+\s*/g, ', ').replace(/\s+/g, ' ').replace(/\s+,/g, ',').replace(/,\s*,/g, ',').replace(/^[,\s]+|[,\s]+$/g, '').replace(/Coimbatore-\s*/i, 'Coimbatore ').replace(/,?\s*Tamil Nadu, India\.?/i, ', Tamil Nadu');
-  const q = encodeURIComponent(clean);
-  // an embed link pasted in Admin (Contact > map URL) wins, so the office can pin the exact spot
-  const embed = mapUrl && /\/maps\/embed|output=embed/.test(mapUrl) ? mapUrl : `https://www.google.com/maps?q=${q}&z=16&output=embed`;
+  const q = encodeURIComponent(OFFICE_PLACE);
+  // an embed link pasted in Admin (Contact > map URL) wins; otherwise the office pin above
+  const embed = mapUrl && /\/maps\/embed|output=embed/.test(mapUrl) ? mapUrl : `https://www.google.com/maps?q=${q}&z=17&output=embed`;
+  const open = mapUrl && !/\/maps\/embed|output=embed/.test(mapUrl) ? mapUrl : OFFICE_LINK;
   return (
     <div className="foot-map">
       {consent.thirdParty ? (
@@ -140,7 +141,7 @@ function MapEmbed({ address, mapUrl }) {
           <button type="button" className="foot-map-btn" onClick={consent.allowThirdParty}>Load Google Map</button>
         </div>
       )}
-      <a className="foot-dir" href={`https://www.google.com/maps/search/?api=1&query=${q}`} target="_blank" rel="noopener noreferrer">Get directions <Icon name="arrow" size={16} className="arrow" /></a>
+      <a className="foot-dir" href={open} target="_blank" rel="noopener noreferrer">Get directions <Icon name="arrow" size={16} className="arrow" /></a>
     </div>
   );
 }
@@ -183,7 +184,7 @@ export function Footer() {
           </ul>
         </div>
       </div>
-      <div className="container foot-mapband"><MapEmbed address={c.address} mapUrl={c.mapUrl} /></div>
+      <div className="container foot-mapband"><MapEmbed mapUrl={c.mapUrl} /></div>
       <div className="container foot-bar">
         <span>© {new Date().getFullYear()} {s.site?.name}. All rights reserved.</span>
         <nav className="foot-legal" aria-label="Legal">
